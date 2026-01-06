@@ -1,5 +1,5 @@
 
-import { Row, Col, Button, Spinner, Alert, Toast } from 'react-bootstrap';
+import { Row, Col, Button, Spinner, Alert, Toast, Card, ProgressBar } from 'react-bootstrap';
 import { Outlet, Link, useParams, Navigate, useLocation, useNavigate } from 'react-router';
 
 import { Navigation } from './Navigation';
@@ -147,4 +147,80 @@ function TotpLayout(props) {
     );
   }
   
-  export { GenericLayout, NotFoundLayout, TableLayout, AddLayout, EditLayout, LoginLayout, TotpLayout };
+function CloudStatusLayout(props) {
+  // Example data; in a real app, you would fetch this from an API
+  const serviceStatus = {
+    computational: { used: 4, max: 6 }, // 4 out of 6 instances used
+    storage: { used: 65, max: 100 },   // 65TB out of 100TB
+    dataTransfer: { used: 120, max: 500 } // 120TB used out of 500TB
+  };
+
+  return (
+    <>
+      <Row className="mb-4">
+        <Col>
+          <Navigation 
+            loggedIn={props.loggedIn} 
+            user={props.user} 
+            loggedInTotp={props.loggedInTotp} 
+            logout={props.logout} 
+          />
+        </Col>
+      </Row>
+
+      <Row className="g-4">
+        {/* Computational Service Box */}
+        <Col md={4}>
+          <Card>
+            <Card.Body>
+              <Card.Title>Computational Instances</Card.Title>
+              <Card.Text>
+                {serviceStatus.computational.used} / {serviceStatus.computational.max} instances in use
+              </Card.Text>
+              <ProgressBar 
+                now={(serviceStatus.computational.used / serviceStatus.computational.max) * 100} 
+                label={`${Math.round((serviceStatus.computational.used / serviceStatus.computational.max) * 100)}%`}
+              />
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Storage Service Box */}
+        <Col md={4}>
+          <Card>
+            <Card.Body>
+              <Card.Title>Storage</Card.Title>
+              <Card.Text>
+                {serviceStatus.storage.used}TB / {serviceStatus.storage.max}TB used
+              </Card.Text>
+              <ProgressBar 
+                now={(serviceStatus.storage.used / serviceStatus.storage.max) * 100} 
+                label={`${Math.round((serviceStatus.storage.used / serviceStatus.storage.max) * 100)}%`}
+              />
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Data Transfer Service Box */}
+        <Col md={4}>
+          <Card>
+            <Card.Body>
+              <Card.Title>Data Transfer</Card.Title>
+              <Card.Text>
+                {serviceStatus.dataTransfer.used}TB / {serviceStatus.dataTransfer.max}TB used
+              </Card.Text>
+              <ProgressBar 
+                now={(serviceStatus.dataTransfer.used / serviceStatus.dataTransfer.max) * 100} 
+                label={`${Math.round((serviceStatus.dataTransfer.used / serviceStatus.dataTransfer.max) * 100)}%`}
+              />
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </>
+  );
+}
+
+
+
+  export { CloudStatusLayout, GenericLayout, NotFoundLayout, TableLayout, AddLayout, EditLayout, LoginLayout, TotpLayout };

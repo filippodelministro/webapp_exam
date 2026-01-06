@@ -14,7 +14,7 @@ import { Routes, Route, Outlet, Link, useParams, Navigate, useNavigate } from 'r
 
 //import FILMS from './films';
 
-import { GenericLayout, NotFoundLayout, TableLayout, AddLayout, EditLayout, LoginLayout, TotpLayout } from './components/Layout';
+import { CloudStatusLayout, GenericLayout, NotFoundLayout, TableLayout, AddLayout, EditLayout, LoginLayout, TotpLayout } from './components/Layout';
 import API from './API.js';
 
 function App() {
@@ -168,7 +168,7 @@ function App() {
   return (
       <Container fluid>
         <Routes>
-          <Route path="/" element={loggedIn? <GenericLayout filterArray={filterArray} 
+          {/* <Route path="/" element={loggedIn? <GenericLayout filterArray={filterArray} 
                                     message={message} setMessage={setMessage}
                                     loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} 
                                     logout={handleLogout} /> : <Navigate replace to='/login' />} >
@@ -189,9 +189,10 @@ function App() {
                  dirty={dirty} setDirty={setDirty} handleErrors={handleErrors} />
                  : <Navigate replace to='/' />} />
             <Route path="*" element={<NotFoundLayout />} />
-          </Route>
+          </Route> */}
           <Route path='/login' element={ <LoginWithTotp loggedIn={loggedIn} login={handleLogin}
                                         user={user} setLoggedInTotp={setLoggedInTotp} /> } />
+          <Route path="/"element={ <CloudStatusLayout loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} logout={handleLogout} />} />
         </Routes>
       </Container>
   );
