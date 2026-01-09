@@ -129,6 +129,14 @@ app.get('/api/datatransfer-info', (req, res) => {
 });
 
 
+// GET /api/cloud-info
+app.get('/api/cloud-info', (req, res) => {
+  cloudDao.getCloudStatus()
+    .then((data) => res.json(data))
+    .catch((err) => res.status(500).json({ error: 'Error in retrieving cloud info' }));
+});
+
+
 /*** Users APIs ***/
 
 function clientUserInfo(req) {

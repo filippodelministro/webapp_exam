@@ -20,3 +20,31 @@
 .serviceCard p {
   margin: 2px 0;
 }
+
+/* Progress bar container */
+.progress-bar {
+  background-color: #eee;
+  border-radius: 8px;
+  height: 20px;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Progress bar filler */
+.progress-bar-fill {
+  background-color: #36A2EB;
+  height: 100%;
+  width: 0%; /* this will be overridden inline via style for dynamic width */
+  border-radius: 8px;
+  transition: width 0.5s ease-in-out;
+}
+
+/* Status cards */
+.statusCard {
+  flex: 1;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background-color: #f9f9f9;
+  text-align: center;
+}

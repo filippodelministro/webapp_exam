@@ -137,3 +137,29 @@ exports.getDatatransferInfo = () => {
         });
     });
 };
+
+
+const convertCloudStatusFromDbRecord = (dbRecord) => {
+  const cloudStatus = {};
+  cloudStatus.usedComputation = dbRecord.usedComputation;
+  cloudStatus.usedStorage = dbRecord.usedStorage;
+  cloudStatus.usedData = dbRecord.usedData;
+
+  return cloudStatus;
+}
+exports.getCloudStatus = () => {
+    return new Promise((resolve, reject) => {
+    const sql = `
+    select count(*) as usedComputation, sum(storage_tb) as usedStorage, sum(data_gb) as usedData
+    from orders   
+    `;
+        db.all(sql, [], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                const data = rows.map(convertCloudStatusFromDbRecord);
+                resolve(data);
+            }
+        });
+    });
+};

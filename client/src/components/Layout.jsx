@@ -103,20 +103,24 @@ function CloudStatusLayout() {
   const [computationData, setComputationData] = useState([]);
   const [storageData, setStorageData] = useState([]);
   const [datatransferData, setDatatransferData] = useState([]);
+  const [cloudStatus, setCloudStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [computation, storage, datatransfer] = await Promise.all([
+        const [computation, storage, datatransfer, status] = await Promise.all([
           API.getComputationInfo(),
           API.getStorageInfo(),
           API.getDatatransferInfo(),
+          API.getCloudStatus(),
         ]);
+
         setComputationData(computation);
         setStorageData(storage);
         setDatatransferData(datatransfer);
+        setCloudStatus(status[0]);
 
       } catch (err) {
         console.error(err);
@@ -132,11 +136,56 @@ function CloudStatusLayout() {
   if (loading) return <p>Loading cloud services info...</p>;
   if (error) return <p>{error}</p>;
 
+  // Calculate totals
+  const totalComputation = computationData.reduce((acc, svc) => acc + svc.maxInstances, 0);
+  const usedComputation = cloudStatus?.usedComputation || 0;
+  const computationPercent = totalComputation ? Math.round((usedComputation / totalComputation) * 100) : 0;
+
+  const totalStorage = storageData.reduce((acc, svc) => acc + svc.maxGlobalStorage, 0);
+  const usedStorage = cloudStatus?.usedStorage || 0;
+  const storagePercent = totalStorage ? Math.round((usedStorage / totalStorage) * 100) : 0;
+
+  const totalData = datatransferData.reduce((acc, svc) => acc + svc.tier1, 0); 
+  const usedData = cloudStatus?.usedData || 0;
+  const dataPercent = totalData ? Math.round((usedData / totalData) * 100) : 0;
+
   return (
-    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-      {computationData.map((service) => computationCardStyle(service))}
-      {storageData.map((service) => storageCardStyle(service))}
-      {datatransferData.map((service) => datatransferCardStyle(service))}
+    <div>
+      {/* Status boxes */}
+      {cloudStatus && (
+        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
+          <div className="statusCard">
+            <h4>Computation Instances</h4>
+            <div className="progress-bar">
+              <div className="progress-bar-fill" style={{ width: `${computationPercent}%` }}></div>
+            </div>
+            <p>{usedComputation}/{totalComputation} used</p>
+          </div>
+
+          <div className="statusCard">
+            <h4>Storage Used</h4>
+            <div className="progress-bar">
+              <div className="progress-bar-fill" style={{ width: `${storagePercent}%` }}></div>
+            </div>
+            <p>{usedStorage}/{totalStorage} TB used</p>
+          </div>
+
+          <div className="statusCard">
+            <h4>Data Transferred</h4>
+            <div className="progress-bar">
+              <div className="progress-bar-fill" style={{ width: `${dataPercent}%` }}></div>
+            </div>
+            <p>{usedData} GB</p>
+          </div>
+        </div>
+      )}
+
+      {/* Service cards */}
+      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+        {computationData.map((service) => computationCardStyle(service))}
+        {storageData.map((service) => storageCardStyle(service))}
+        {datatransferData.map((service) => datatransferCardStyle(service))}
+      </div>
     </div>
   );
 }
