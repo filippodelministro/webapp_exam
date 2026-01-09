@@ -83,21 +83,41 @@ function storageCardStyle(service) {
   );
 }
 
+function datatransferCardStyle(service) {
+  const basePrice = service.base_price;
+  const tier1Price = (service.base_price * service.tier1_multiplier).toFixed(2);
+  const tier2Price = (service.base_price * service.tier2_multiplier).toFixed(2);
+  const base_tier = service.base_tier;
+
+  return (
+    <div key={service.id} className="serviceCard">
+      <h4 className="serviceCardTitle">{service.name}</h4>
+      <p><strong>Up to: {service.base_tier} GB:</strong> €{basePrice}</p>
+      <p><strong>Up to {service.tier1} GB:</strong> €{tier1Price}/GB</p>
+      <p><strong>Above {service.tier1} GB:</strong> €{tier2Price}/GB</p>
+    </div>
+  );
+}
+
 function CloudStatusLayout() {
   const [computationData, setComputationData] = useState([]);
   const [storageData, setStorageData] = useState([]);
+  const [datatransferData, setDatatransferData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [computation, storage] = await Promise.all([
+        const [computation, storage, datatransfer] = await Promise.all([
           API.getComputationInfo(),
           API.getStorageInfo(),
+          API.getDatatransferInfo(),
         ]);
         setComputationData(computation);
         setStorageData(storage);
+        setDatatransferData(datatransfer);
+
       } catch (err) {
         console.error(err);
         setError('Failed to load cloud services info');
@@ -116,6 +136,7 @@ function CloudStatusLayout() {
     <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
       {computationData.map((service) => computationCardStyle(service))}
       {storageData.map((service) => storageCardStyle(service))}
+      {datatransferData.map((service) => datatransferCardStyle(service))}
     </div>
   );
 }

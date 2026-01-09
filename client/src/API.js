@@ -51,6 +51,12 @@ const getStorageInfo = async () => {
   return data;
 };
 
+const getDatatransferInfo = async () => {
+  const data = await getJson(
+    fetch(SERVER_URL + 'datatransfer-info', { credentials: 'include' })
+  );
+  return data;
+};
 
 /*** Authentication functions ***/
 
@@ -110,6 +116,6 @@ const logOut = async() => {
   )
 }
 
-const API = { getComputationInfo, getStorageInfo,
+const API = { getComputationInfo, getStorageInfo, getDatatransferInfo, 
               logIn, getUserInfo, logOut, totpVerify };
 export default API;

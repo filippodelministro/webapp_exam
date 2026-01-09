@@ -107,3 +107,33 @@ exports.getStorageInfo = () => {
         });
     });
 };
+
+const convertDatatransferInfoFromDbRecord = (dbRecord) => {
+  const DTInfo = {};
+  DTInfo.id = dbRecord.id;
+  DTInfo.name = dbRecord.name;
+  DTInfo.base_tier = dbRecord.base_tier;
+  DTInfo.tier1 = dbRecord.tier1;
+  DTInfo.base_price = dbRecord.base_price;
+  DTInfo.tier1_multiplier = dbRecord.tier1_multiplier;
+  DTInfo.tier2_multiplier = dbRecord.tier2_multiplier;
+
+  return DTInfo;
+}
+exports.getDatatransferInfo = () => {
+    return new Promise((resolve, reject) => {
+    const sql = `
+      select *
+      from datatransfer;
+      `;
+
+        db.all(sql, [], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                const data = rows.map(convertDatatransferInfoFromDbRecord);
+                resolve(data);
+            }
+        });
+    });
+};

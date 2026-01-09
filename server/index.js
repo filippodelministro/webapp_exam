@@ -109,18 +109,23 @@ const errorFormatter = ({ location, msg, param, value, nestedErrors }) => {
 /*** Cloud Service APIs ***/
 
 // GET /api/computation-info
-// Returns usage statistics for storage, computation, and data_transfer services.
+// Returns usage statistics for computation, storage, and data_transfer services.
 app.get('/api/computation-info', (req, res) => {
   cloudDao.getComputationInfo()
     .then((data) => res.json(data))
-    .catch((err) => res.status(500).json({ error: 'Errore nel recupero delle squadre' }));
+    .catch((err) => res.status(500).json({ error: 'Error in retrieving computation info' }));
 });
 
-// Returns usage statistics for storage, computation, and data_transfer services.
 app.get('/api/storage-info', (req, res) => {
   cloudDao.getStorageInfo()
     .then((data) => res.json(data))
-    .catch((err) => res.status(500).json({ error: 'Errore nel recupero delle squadre' }));
+    .catch((err) => res.status(500).json({ error: 'Error in retrieving storage info' }));
+});
+
+app.get('/api/datatransfer-info', (req, res) => {
+  cloudDao.getDatatransferInfo()
+    .then((data) => res.json(data))
+    .catch((err) => res.status(500).json({ error: 'Error in retrieving datatransfer info' }));
 });
 
 
