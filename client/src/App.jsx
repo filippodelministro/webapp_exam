@@ -12,8 +12,6 @@ import { React, useState, useEffect } from 'react';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import { Routes, Route, Outlet, Link, useParams, Navigate, useNavigate } from 'react-router';
 
-//import FILMS from './films';
-
 import { GenericLayout, NotFoundLayout, LoginLayout, TotpLayout } from './components/Layout';
 import API from './API.js';
 
@@ -26,11 +24,6 @@ function App() {
   // This state contains the user's info.
   const [user, setUser] = useState(null);
   const [loggedInTotp, setLoggedInTotp] = useState(false);
-
-
-  const [filmList, setFilmList] = useState([]);
-  const [message, setMessage] = useState('');
-  const [dirty, setDirty] = useState(true);
 
   // If an error occurs, the error message will be shown using a state.
   const handleErrors = (err) => {
@@ -74,39 +67,7 @@ function App() {
   }, []);  // The useEffect callback is called only the first time the component is mounted.
 
 
-  /**
-   * Defining a structure for Filters
-   * Each filter is identified by a unique name and is composed by the following fields:
-   * - A label to be shown in the GUI
-   * - A URL for the router
-   * - A filter function applied before passing the films to the FilmTable component
-   */
-  const filters = {
-    'all': { label: 'All', url: '/', filterFunction: () => true },
-    'favorite': { label: 'Favorites', url: '/filter/favorite', filterFunction: film => film.favorite },
-    'best': { label: 'Best Rated', url: '/filter/best', filterFunction: film => film.rating >= 5 },
-    'lastmonth': { label: 'Seen Last Month', url: '/filter/lastmonth', filterFunction: film => isSeenLastMonth(film) },
-    'unseen': { label: 'Unseen', url: '/filter/unseen', filterFunction: film => film.watchDate ? false : true }
-  };
-
-  const isSeenLastMonth = (film) => {
-    if ('watchDate' in film) {  // Accessing watchDate only if defined
-      const diff = film.watchDate.diff(dayjs(), 'month')
-      const isLastMonth = diff <= 0 && diff > -1;      // last month
-      return isLastMonth;
-    }
-  }
-
-  const filtersToArray = Object.entries(filters);
-  //console.log(JSON.stringify(filtersToArray));
-
-  // NB: to implicitly return an object in an arrow function, use () around the object {}
-  // const filterArray = filtersToArray.map( e => ({filterName: e[0], ...e[1]}) );
-  // alternative with destructuring directly in the parameter of the callback 
-  const filterArray = filtersToArray.map(([filterName, obj ]) =>
-     ({ filterName: filterName, ...obj }));
-
-  /**
+ /**
    * This function handles the login process.
    * It requires a username and a password inside a "credentials" object.
    */
@@ -133,65 +94,7 @@ function App() {
     setFilmList([]);
   };
 
-
-
-  function deleteFilm(filmId) {
-    API.deleteFilm(filmId)
-      .then(()=> setDirty(true))
-      .catch(err=>handleErrors(err));
-  }
-
-  function editFilm(film) {
-    API.updateFilm(film)
-      .then(()=>{setDirty(true); navigate('/');})
-      .catch(err=>handleErrors(err));
-  }
-
-  function setFilmFavorite(id, favorite) {
-    API.setFilmFavorite(id, favorite)
-      .then(()=>{setDirty(true); navigate('/');})
-      .catch(err=>handleErrors(err));
-  }
-
-  function setFilmRating(id, favorite) {
-    API.setFilmRating(id, favorite)
-      .then(()=>{setDirty(true); navigate('/');})
-      .catch(err=>handleErrors(err));
-  }
-
-  function addFilm(film) {
-    API.addFilm(film)
-      .then(()=>{setDirty(true); navigate('/');})
-      .catch(err=>handleErrors(err));
-  }
-
   return (
-      // <Container fluid>
-      //   <Routes>
-      //     {/* <Route path="/" element={loggedIn? <GenericLayout filterArray={filterArray} 
-      //                               message={message} setMessage={setMessage}
-      //                               loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} 
-      //                               logout={handleLogout} /> : <Navigate replace to='/login' />} >
-      //       <Route index element={loggedIn? <TableLayout 
-      //            filmList={filmList} setFilmList={setFilmList} filters={filters} 
-      //            deleteFilm={deleteFilm} editFilm={editFilm}
-      //            setFilmFavorite={setFilmFavorite} setFilmRating={setFilmRating}
-      //            disableActions={!loggedInTotp}
-      //            handleErrors={handleErrors}
-      //            dirty={dirty} setDirty={setDirty} /> : <Navigate replace to='/' />} />
-      //       <Route path="add" element={loggedInTotp? <AddLayout addFilm={addFilm} /> : <Navigate replace to='/' />} />
-      //       <Route path="edit/:filmId" element={loggedInTotp? <EditLayout films={filmList} editFilm={editFilm} /> : <Navigate replace to='/' />} />
-      //       <Route path="filter/:filterId" element={loggedIn? <TableLayout 
-      //            filmList={filmList} setFilmList={setFilmList}
-      //            filters={filters} deleteFilm={deleteFilm} editFilm={editFilm}
-      //            setFilmFavorite={setFilmFavorite} setFilmRating={setFilmRating}
-      //            disableActions={!loggedInTotp}
-      //            dirty={dirty} setDirty={setDirty} handleErrors={handleErrors} />
-      //            : <Navigate replace to='/' />} />
-      //     </Route> */}
-      //   </Routes>
-      // </Container>
-
     <Container fluid>
       <Routes>
         <Route path="/" element={<GenericLayout loggedIn={loggedIn} loggedInTotp={loggedInTotp} user={user} logout={handleLogout} />} />

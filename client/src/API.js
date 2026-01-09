@@ -33,145 +33,8 @@ function getJson(httpResponsePromise) {
   });
 }
 
-/**
- * Getting from the server side and returning the list of films.
- * The list of films could be filtered in the server-side through the optional parameter: filter.
- */
-const getFilms = async (filter) => {
-  // film.watchDate could be null or a string in the format YYYY-MM-DD
-  return getJson(
-    filter 
-      ? fetch(SERVER_URL + 'films?filter=' + filter, { credentials: 'include' })
-      : fetch(SERVER_URL + 'films', { credentials: 'include' })
-  ).then( json => {
-    return json.map((film) => {
-      const clientFilm = {
-        id: film.id,
-        title: film.title,
-        favorite: film.favorite,
-        rating: film.rating,
-        user: film.user
-      }
-      if (film.watchDate != null)
-        clientFilm.watchDate = dayjs(film.watchDate);
-      return clientFilm;
-    })
-  })
-}
 
-/**
- * This function wants a film object as parameter. If the filmId exists, it updates the film in the server side.
- */
-function updateFilm(film) {
-  // the date must be transformed into a string for the JSON.stringify method
-  if (film && film.watchDate && (film.watchDate instanceof dayjs))
-      film.watchDate = film.watchDate.format("YYYY-MM-DD");
-  return getJson(
-    fetch(SERVER_URL + "films/" + film.id, {
-      method: 'PUT',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(film)
-    })
-  )
-}
-
-/**
- * This function wants a film id and a new value for favorite as parameter. If the filmId exists, it updates the film in the server side.
- */
-function setFilmFavorite(id, value) {
-  return getJson(
-    fetch(SERVER_URL + "films/" + id + "/favorite", {
-      method: 'PUT',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({favorite: value})
-    })
-  )
-}
-
-/**
- * This function wants a film id and a new value for rating as parameter. If the filmId exists, it updates the film in the server side.
- */
-function setFilmRating(id, value) {
-  return getJson(
-    fetch(SERVER_URL + "films/" + id + "/rating", {
-      method: 'PUT',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({rating: value})
-    })
-  )
-}
-
-
-/**
- * This function adds a new film in the back-end library.
- */
-function addFilm(film) {
-  // the date must be transformed into a string for the JSON.stringify method
-  if (film && film.watchDate && (film.watchDate instanceof dayjs))
-    film.watchDate = film.watchDate.format("YYYY-MM-DD");
-  return getJson(
-    fetch(SERVER_URL + "films/", {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(film) 
-    })
-  )
-}
-
-/**
- * This function deletes a film from the back-end library.
- */
-function deleteFilm(filmId) {
-  return getJson(
-    fetch(SERVER_URL + "films/" + filmId, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
-  )
-}
-
-/**
- * This function fetches service usage values from the back-end.
- */
-// export const getServiceUsage = async () => {
-//   return getJson(
-//     fetch(SERVER_URL + 'services-usage', { credentials: 'include' })
-//   ).then((data) => {
-//     // Transform server response into the structure expected by CloudStatusLayout
-//     const status = {
-//       computational: { used: 0, max: 0 },
-//       storage: { used: 0, max: 0 },
-//       dataTransfer: { used: 0, max: 0 },
-//     };
-
-//     data.forEach((service) => {
-//       if (service.service_name === 'computation') {
-//         status.computational.used = service.used_value;
-//         status.computational.max = service.total_value;
-//       } else if (service.service_name === 'storage') {
-//         status.storage.used = service.used_value;
-//         status.storage.max = service.total_value;
-//       } else if (service.service_name === 'data_transfer') {
-//         status.dataTransfer.used = service.used_value;
-//         status.dataTransfer.max = service.total_value;
-//       }
-//     });
-
-//     return status;
-//   });
-// };
+/*** Cloud API calls ***/
 
 const getServiceUsage = async () => {
   const data = await getJson(
@@ -239,6 +102,6 @@ const logOut = async() => {
   )
 }
 
-const API = { getFilms, updateFilm, addFilm, deleteFilm, setFilmFavorite, setFilmRating, getServiceUsage,
+const API = { getServiceUsage,
               logIn, getUserInfo, logOut, totpVerify };
 export default API;
