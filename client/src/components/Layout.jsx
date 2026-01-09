@@ -62,8 +62,22 @@ function computationCardStyle(service) {
       <p><strong>Max:</strong> {service.maxInstances}</p>
       <div>
         <p><strong>RAM:</strong> {service.ramTier1}/{service.ramTier2}/{service.ramTier3} GB</p>
-        <p><strong>MinStorage to link:</strong> {service.minStorageTier1 ?? '–'}/{service.minStorageTier2 ?? '–'}/{service.minStorageTier3 ?? '–'} GB</p>
+        <p><strong>MinStorage:</strong> {service.minStorageTier1 ?? '–'}/{service.minStorageTier2 ?? '–'}/{service.minStorageTier3 ?? '–'} GB</p>
         <p><strong>Price:</strong> €{service.priceTier1}/€{service.priceTier2}/€{service.priceTier3}</p>
+      </div>
+    </div>
+  );
+}
+
+function storageCardStyle(service) {
+  return (
+    <div key={service.id} className="serviceCard">
+      <h4 className="serviceCardTitle">{service.name}</h4>
+      <p><strong>Max:</strong> {service.maxGlobalStorage}</p>
+      <div>
+        {/* <p><strong>RAM:</strong> {service.ramTier1}/{service.ramTier2}/{service.ramTier3} GB</p> */}
+        <p><strong>MinStorage per order:</strong> {service.minStorageTbPerOrder}TB</p>
+        <p><strong>Price:</strong> €{service.price}/TB/month</p>
       </div>
     </div>
   );
@@ -80,6 +94,7 @@ function CloudStatusLayout() {
       try {
         const [computation, storage] = await Promise.all([
           API.getComputationInfo(),
+          API.getStorageInfo(),
         ]);
         setComputationData(computation);
         setStorageData(storage);
@@ -100,6 +115,7 @@ function CloudStatusLayout() {
   return (
     <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
       {computationData.map((service) => computationCardStyle(service))}
+      {storageData.map((service) => storageCardStyle(service))}
     </div>
   );
 }

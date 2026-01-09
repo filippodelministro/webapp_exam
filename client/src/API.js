@@ -36,16 +36,17 @@ function getJson(httpResponsePromise) {
 
 /*** Cloud API calls ***/
 
-const getServiceUsage = async () => {
-  const data = await getJson(
-    fetch(SERVER_URL + 'services-usage', { credentials: 'include' })
-  );
-  return data;
-};
 
 const getComputationInfo = async () => {
   const data = await getJson(
     fetch(SERVER_URL + 'computation-info', { credentials: 'include' })
+  );
+  return data;
+};
+
+const getStorageInfo = async () => {
+  const data = await getJson(
+    fetch(SERVER_URL + 'storage-info', { credentials: 'include' })
   );
   return data;
 };
@@ -109,6 +110,6 @@ const logOut = async() => {
   )
 }
 
-const API = { getServiceUsage, getComputationInfo,
+const API = { getComputationInfo, getStorageInfo,
               logIn, getUserInfo, logOut, totpVerify };
 export default API;

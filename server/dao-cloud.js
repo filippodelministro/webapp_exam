@@ -77,3 +77,33 @@ exports.getComputationInfo = () => {
         });
     });
 };
+
+
+
+const convertStorageInfoFromDbRecord = (dbRecord) => {
+  const storageInfo = {};
+  storageInfo.id = dbRecord.id;
+  storageInfo.name = dbRecord.name;
+  storageInfo.price = dbRecord.price_eur_per_tb_per_month;
+  storageInfo.minStorageTbPerOrder = dbRecord.min_storage_tb_per_order;
+  storageInfo.maxGlobalStorage = dbRecord.max_gloabl_storage;
+
+  return storageInfo;
+}
+exports.getStorageInfo = () => {
+    return new Promise((resolve, reject) => {
+    const sql = `
+      select *
+      from storage;
+      `;
+
+        db.all(sql, [], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                const data = rows.map(convertStorageInfoFromDbRecord);
+                resolve(data);
+            }
+        });
+    });
+};
