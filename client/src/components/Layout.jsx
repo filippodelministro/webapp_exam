@@ -113,6 +113,59 @@ function TotpLayout(props) {
     );
   }
   
+  // function GenericLayout(props) {
+  
+  //   return (
+  //     <>
+  //       <Row>
+  //         <Col>
+  //           <Navigation loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} logout={props.logout} />
+  //         </Col>
+  //       </Row>
+
+  //       <Row><Col>
+  //         {props.message? <Alert className='my-1' onClose={() => props.setMessage('')} variant='danger' dismissible>
+  //           {props.message}</Alert> : null}
+  //         {/* Alternative, with autohide
+  //           <Toast show={props.message !== ''} onClose={() => props.setMessage('')} delay={4000} autohide>
+  //             <Toast.Body>{props.message}</Toast.Body>
+  //           </Toast>
+  //         */}
+  //       </Col></Row>
+
+  //       <Row>
+  //         <Col xs={3}>
+  //           <Filters filterArray={props.filterArray} />
+  //         </Col>
+  
+  //         <Col xs={9}>
+  //           <Outlet />
+  
+  //         </Col>
+  //       </Row>
+  //     </>
+  //   );
+  // }
+  
+  function NewOrderLayout(props) {
+     return (
+      <>
+        <h2>New order Layout</h2>
+      </>
+    );
+  }
+
+  function OldOrderLayout(props) {
+     return (
+      <>
+        <h2>New order Layout</h2>
+      </>
+    );
+  }
+
+
+
+
   function GenericLayout(props) {
   
     return (
@@ -123,30 +176,36 @@ function TotpLayout(props) {
           </Col>
         </Row>
 
-        <Row><Col>
-          {props.message? <Alert className='my-1' onClose={() => props.setMessage('')} variant='danger' dismissible>
-            {props.message}</Alert> : null}
-          {/* Alternative, with autohide
-            <Toast show={props.message !== ''} onClose={() => props.setMessage('')} delay={4000} autohide>
-              <Toast.Body>{props.message}</Toast.Body>
-            </Toast>
-          */}
-        </Col></Row>
+      {/* Cloud Status always visible */}
+      <Row className="g-4 mt-4">
+        <Col>
+          <CloudStatusLayout />
+        </Col>
+      </Row>
 
-        <Row>
-          <Col xs={3}>
-            <Filters filterArray={props.filterArray} />
-          </Col>
-  
-          <Col xs={9}>
-            <Outlet />
-  
+      {/* Orders visible only if logged in */}
+      {props.loggedIn && (
+        <Row className="g-4 mt-5">
+          <Col>
+            <h3>Orders</h3>
+            <NewOrderLayout />
+            <OldOrderLayout />
           </Col>
         </Row>
-      </>
-    );
-  }
-  
+      )}
+
+      {/* Cancel button only if logged in and 2FA enabled */}
+      {props.loggedIn && props.loggedInTotp && (
+        <Row className="mt-4">
+          <Col>
+            <button className="btn btn-danger">Cancel Order</button>
+          </Col>
+        </Row>
+      )}
+    </>
+  );
+}
+
 function CloudStatusLayout(props) {
   // Example data; in a real app, you would fetch this from an API
   const serviceStatus = {
@@ -157,7 +216,7 @@ function CloudStatusLayout(props) {
 
   return (
     <>
-      <Row className="mb-4">
+      {/* <Row className="mb-4">
         <Col>
           <Navigation 
             loggedIn={props.loggedIn} 
@@ -166,7 +225,7 @@ function CloudStatusLayout(props) {
             logout={props.logout} 
           />
         </Col>
-      </Row>
+      </Row> */}
 
       <Row className="g-4">
         {/* Computational Service Box */}

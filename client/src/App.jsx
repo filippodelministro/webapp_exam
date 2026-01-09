@@ -166,35 +166,44 @@ function App() {
   }
 
   return (
-      <Container fluid>
-        <Routes>
-          {/* <Route path="/" element={loggedIn? <GenericLayout filterArray={filterArray} 
-                                    message={message} setMessage={setMessage}
-                                    loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} 
-                                    logout={handleLogout} /> : <Navigate replace to='/login' />} >
-            <Route index element={loggedIn? <TableLayout 
-                 filmList={filmList} setFilmList={setFilmList} filters={filters} 
-                 deleteFilm={deleteFilm} editFilm={editFilm}
-                 setFilmFavorite={setFilmFavorite} setFilmRating={setFilmRating}
-                 disableActions={!loggedInTotp}
-                 handleErrors={handleErrors}
-                 dirty={dirty} setDirty={setDirty} /> : <Navigate replace to='/' />} />
-            <Route path="add" element={loggedInTotp? <AddLayout addFilm={addFilm} /> : <Navigate replace to='/' />} />
-            <Route path="edit/:filmId" element={loggedInTotp? <EditLayout films={filmList} editFilm={editFilm} /> : <Navigate replace to='/' />} />
-            <Route path="filter/:filterId" element={loggedIn? <TableLayout 
-                 filmList={filmList} setFilmList={setFilmList}
-                 filters={filters} deleteFilm={deleteFilm} editFilm={editFilm}
-                 setFilmFavorite={setFilmFavorite} setFilmRating={setFilmRating}
-                 disableActions={!loggedInTotp}
-                 dirty={dirty} setDirty={setDirty} handleErrors={handleErrors} />
-                 : <Navigate replace to='/' />} />
-            <Route path="*" element={<NotFoundLayout />} />
-          </Route> */}
-          <Route path='/login' element={ <LoginWithTotp loggedIn={loggedIn} login={handleLogin}
-                                        user={user} setLoggedInTotp={setLoggedInTotp} /> } />
-          <Route path="/"element={ <CloudStatusLayout loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} logout={handleLogout} />} />
-        </Routes>
-      </Container>
+      // <Container fluid>
+      //   <Routes>
+      //     {/* <Route path="/" element={loggedIn? <GenericLayout filterArray={filterArray} 
+      //                               message={message} setMessage={setMessage}
+      //                               loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} 
+      //                               logout={handleLogout} /> : <Navigate replace to='/login' />} >
+      //       <Route index element={loggedIn? <TableLayout 
+      //            filmList={filmList} setFilmList={setFilmList} filters={filters} 
+      //            deleteFilm={deleteFilm} editFilm={editFilm}
+      //            setFilmFavorite={setFilmFavorite} setFilmRating={setFilmRating}
+      //            disableActions={!loggedInTotp}
+      //            handleErrors={handleErrors}
+      //            dirty={dirty} setDirty={setDirty} /> : <Navigate replace to='/' />} />
+      //       <Route path="add" element={loggedInTotp? <AddLayout addFilm={addFilm} /> : <Navigate replace to='/' />} />
+      //       <Route path="edit/:filmId" element={loggedInTotp? <EditLayout films={filmList} editFilm={editFilm} /> : <Navigate replace to='/' />} />
+      //       <Route path="filter/:filterId" element={loggedIn? <TableLayout 
+      //            filmList={filmList} setFilmList={setFilmList}
+      //            filters={filters} deleteFilm={deleteFilm} editFilm={editFilm}
+      //            setFilmFavorite={setFilmFavorite} setFilmRating={setFilmRating}
+      //            disableActions={!loggedInTotp}
+      //            dirty={dirty} setDirty={setDirty} handleErrors={handleErrors} />
+      //            : <Navigate replace to='/' />} />
+      //       <Route path="*" element={<NotFoundLayout />} />
+      //     </Route> */}
+      //     <Route path='/login' element={ <LoginWithTotp loggedIn={loggedIn} login={handleLogin}
+      //                                   user={user} setLoggedInTotp={setLoggedInTotp} /> } />
+      //     <Route path="/"element={ <CloudStatusLayout loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} logout={handleLogout} />} />
+      //   </Routes>
+      // </Container>
+
+    <Container fluid>
+      <Routes>
+        <Route path="/" element={<GenericLayout loggedIn={loggedIn} loggedInTotp={loggedInTotp} user={user} logout={handleLogout} />} />
+        <Route path='/login' element={ <LoginWithTotp loggedIn={loggedIn} login={handleLogin}user={user} setLoggedInTotp={setLoggedInTotp} /> } />
+
+        <Route path="*" element={<h2>Page Not Found</h2>} />
+      </Routes>
+    </Container>
   );
 }
 
