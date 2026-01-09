@@ -55,44 +55,60 @@ function OldOrderLayout(props) {
   );
 }
 
-function computationCardStyle(service) {
+function computationCard(service, used = 0) {
+  const percent = service.maxInstances ? Math.round((used / service.maxInstances) * 100) : 0;
+
   return (
     <div key={service.id} className="serviceCard">
       <h4 className="serviceCardTitle">{service.name}</h4>
-      <p><strong>Max:</strong> {service.maxInstances}</p>
-      <div>
-        <p><strong>RAM:</strong> {service.ramTier1}/{service.ramTier2}/{service.ramTier3} GB</p>
-        <p><strong>MinStorage:</strong> {service.minStorageTier1 ?? '–'}/{service.minStorageTier2 ?? '–'}/{service.minStorageTier3 ?? '–'} GB</p>
-        <p><strong>Price:</strong> €{service.priceTier1}/€{service.priceTier2}/€{service.priceTier3}</p>
+
+      <div className="progress-bar">
+        <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
       </div>
+      <p>{used}/{service.maxInstances} used</p>
+
+      <p><strong>RAM:</strong> {service.ramTier1}/{service.ramTier2}/{service.ramTier3} GB</p>
+      <p><strong>MinStorage:</strong> {service.minStorageTier1 ?? '–'}/{service.minStorageTier2 ?? '–'}/{service.minStorageTier3 ?? '–'} GB</p>
+      <p><strong>Price:</strong> €{service.priceTier1}/€{service.priceTier2}/€{service.priceTier3}</p>
     </div>
   );
 }
 
-function storageCardStyle(service) {
+function storageCard(service, used = 0) {
+  const percent = service.maxGlobalStorage ? Math.round((used / service.maxGlobalStorage) * 100) : 0;
+
   return (
     <div key={service.id} className="serviceCard">
       <h4 className="serviceCardTitle">{service.name}</h4>
-      <p><strong>Max:</strong> {service.maxGlobalStorage}</p>
-      <div>
-        {/* <p><strong>RAM:</strong> {service.ramTier1}/{service.ramTier2}/{service.ramTier3} GB</p> */}
-        <p><strong>MinStorage per order:</strong> {service.minStorageTbPerOrder}TB</p>
-        <p><strong>Price:</strong> €{service.price}/TB/month</p>
+
+      <div className="progress-bar">
+        <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
       </div>
+      <p>{used}/{service.maxGlobalStorage} TB used</p>
+
+      <p><strong>MinStorage per order:</strong> {service.minStorageTbPerOrder}TB</p>
+      <p><strong>Price:</strong> €{service.price}/TB/month</p>
     </div>
   );
 }
 
-function datatransferCardStyle(service) {
+function datatransferCard(service, used = 0) {
+  const percent = service.tier1 ? Math.round((used / service.tier1) * 100) : 0;
+
   const basePrice = service.base_price;
   const tier1Price = (service.base_price * service.tier1_multiplier).toFixed(2);
   const tier2Price = (service.base_price * service.tier2_multiplier).toFixed(2);
-  const base_tier = service.base_tier;
 
   return (
     <div key={service.id} className="serviceCard">
       <h4 className="serviceCardTitle">{service.name}</h4>
-      <p><strong>Up to: {service.base_tier} GB:</strong> €{basePrice}</p>
+
+      <div className="progress-bar">
+        <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
+      </div>
+      <p>{used} GB used</p>
+
+      <p><strong>Up to {service.base_tier} GB:</strong> €{basePrice}</p>
       <p><strong>Up to {service.tier1} GB:</strong> €{tier1Price}/GB</p>
       <p><strong>Above {service.tier1} GB:</strong> €{tier2Price}/GB</p>
     </div>
@@ -151,41 +167,27 @@ function CloudStatusLayout() {
 
   return (
     <div>
-      {/* Status boxes */}
-      {cloudStatus && (
-        <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-          <div className="statusCard">
-            <h4>Computation Instances</h4>
-            <div className="progress-bar">
-              <div className="progress-bar-fill" style={{ width: `${computationPercent}%` }}></div>
-            </div>
-            <p>{usedComputation}/{totalComputation} used</p>
-          </div>
-
-          <div className="statusCard">
-            <h4>Storage Used</h4>
-            <div className="progress-bar">
-              <div className="progress-bar-fill" style={{ width: `${storagePercent}%` }}></div>
-            </div>
-            <p>{usedStorage}/{totalStorage} TB used</p>
-          </div>
-
-          <div className="statusCard">
-            <h4>Data Transferred</h4>
-            <div className="progress-bar">
-              <div className="progress-bar-fill" style={{ width: `${dataPercent}%` }}></div>
-            </div>
-            <p>{usedData} GB</p>
-          </div>
-        </div>
-      )}
 
       {/* Service cards */}
-      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-        {computationData.map((service) => computationCardStyle(service))}
-        {storageData.map((service) => storageCardStyle(service))}
-        {datatransferData.map((service) => datatransferCardStyle(service))}
-      </div>
+        <div className="servicesGrid">
+          {/* Computation cards */}
+          {computationData.map(service => {
+            const used = Math.min(service.maxInstances, cloudStatus?.usedComputation || 0);
+            return computationCard(service, used);
+          })}
+
+          {/* Storage cards */}
+          {storageData.map(service => {
+            const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
+            return storageCard(service, used);
+          })}
+
+          {/* Data transfer cards */}
+          {datatransferData.map(service => {
+            const used = cloudStatus?.usedData || 0;
+            return datatransferCard(service, used);
+          })}
+        </div>
     </div>
   );
 }
