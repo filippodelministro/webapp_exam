@@ -6,7 +6,7 @@ const morgan = require('morgan');  // logging middleware
 const { check, validationResult, oneOf } = require('express-validator'); // validation middleware
 const cors = require('cors');
 
-const filmDao = require('./dao-films'); // module for accessing the films table in the DB
+const cloudDao = require('./dao-cloud'); // module for accessing the films table in the DB
 const userDao = require('./dao-users'); // module for accessing the user table in the DB
 
 /*** init express and set-up the middlewares ***/
@@ -114,7 +114,7 @@ const errorFormatter = ({ location, msg, param, value, nestedErrors }) => {
 app.get('/api/films', isLoggedIn,
   (req, res) => {
     // get films that match optional filter in the query
-    filmDao.listFilms(req.user.id, req.query.filter)
+    cloudDao.listFilms(req.user.id, req.query.filter)
       .then(films => res.json(films))
       .catch((err) => res.status(500).json(err)); // always return a json and an error message
   }
@@ -126,7 +126,7 @@ app.get('/api/films', isLoggedIn,
 app.get('/api/searchFilms', isLoggedIn,
   (req, res) => {
     // get films that match optional filter in the query
-    filmDao.searchFilms(req.user.id, req.query.titleSubstring)
+    cloudDao.searchFilms(req.user.id, req.query.titleSubstring)
       .then(films => res.json(films))
       .catch((err) => res.status(500).json(err)); // always return a json and an error message
   }
@@ -145,7 +145,7 @@ app.get('/api/films/:id', isLoggedIn,
       return res.status(422).json( errors.errors ); // error message is sent back as a json with the error info
     }
     try {
-      const result = await filmDao.getFilm(req.user.id, req.params.id);
+      const result = await cloudDao.getFilm(req.user.id, req.params.id);
       if (result.error)   // If not found, the function returns a resolved promise with an object where the "error" field is set
         res.status(404).json(result);
       else
@@ -186,7 +186,7 @@ app.post('/api/films', isLoggedIn, isTotp,
     };
 
     try {
-      const result = await filmDao.createFilm(film); // NOTE: createFilm returns the newly created object
+      const result = await cloudDao.createFilm(film); // NOTE: createFilm returns the newly created object
       res.json(result);
     } catch (err) {
       console.log(err);  // Logging errors is expecially useful while developing, to catch SQL errors etc.
@@ -223,7 +223,7 @@ app.put('/api/films/:id', isLoggedIn, isTotp,
 
 
     try {
-      const film = await filmDao.getFilm(req.user.id, filmId);
+      const film = await cloudDao.getFilm(req.user.id, filmId);
       if (film.error)   // If not found, the function returns a resolved promise with an object where the "error" field is set
         return res.status(404).json(film);
       const newFilm = {
@@ -233,7 +233,7 @@ app.put('/api/films/:id', isLoggedIn, isTotp,
         rating: req.body.rating || film.rating,
         user: req.user.id   // user is overwritten with the id of the user that is doing the request and it is logged in
       };
-      const result = await filmDao.updateFilm(req.user.id, film.id, newFilm);
+      const result = await cloudDao.updateFilm(req.user.id, film.id, newFilm);
       if (result.error)
         res.status(404).json(result);
       else
@@ -267,11 +267,11 @@ app.put('/api/films/:id/favorite', isLoggedIn,
     }
 
     try {
-      const film = await filmDao.getFilm(req.user.id, filmId);
+      const film = await cloudDao.getFilm(req.user.id, filmId);
       if (film.error)   // If not found, the function returns a resolved promise with an object where the "error" field is set
         return res.status(404).json(film);
       film.favorite = req.body.favorite;  // update favorite property
-      const result = await filmDao.updateFilm(req.user.id, film.id, film);
+      const result = await cloudDao.updateFilm(req.user.id, film.id, film);
       return res.json(result); 
     } catch (err) {
       console.log(err);  // Logging errors is expecially useful while developing, to catch SQL errors etc.
@@ -302,11 +302,11 @@ app.put('/api/films/:id/rating', isLoggedIn,
     }
 
     try {
-      const film = await filmDao.getFilm(req.user.id, filmId);
+      const film = await cloudDao.getFilm(req.user.id, filmId);
       if (film.error)   // If not found, the function returns a resolved promise with an object where the "error" field is set
         return res.status(404).json(film);
       film.rating = req.body.rating;  // update favorite property
-      const result = await filmDao.updateFilm(req.user.id, film.id, film);
+      const result = await cloudDao.updateFilm(req.user.id, film.id, film);
       return res.json(result); 
     } catch (err) {
       console.log(err);  // Logging errors is expecially useful while developing, to catch SQL errors etc.
@@ -339,7 +339,7 @@ app.post('/api/films/change-rating', isLoggedIn,
       Thus querying DB with transactions can be avoided for the purpose of this class. */
       
       // NOTE: Check if the film exists and the result is a valid rating, before performing the operation
-      const film = await filmDao.getFilm(req.user.id, req.body.id);
+      const film = await cloudDao.getFilm(req.user.id, req.body.id);
       if (film.error)
         return res.status(404).json(film);
       if (!film.rating)
@@ -347,7 +347,7 @@ app.post('/api/films/change-rating', isLoggedIn,
       const deltaRating = req.body.deltaRating;
       if (film.rating + deltaRating > 5 || film.rating + deltaRating < 1)
         return res.status(422).json({error: `Modification of rating would yield a value out of valid range`});
-      const result = await filmDao.updateFilmRating(req.user.id, film.id, deltaRating);
+      const result = await cloudDao.updateFilmRating(req.user.id, film.id, deltaRating);
       return res.json(result); 
     } catch (err) {
       console.log(err);  // Logging errors is expecially useful while developing, to catch SQL errors etc.
@@ -365,7 +365,7 @@ app.delete('/api/films/:id', isLoggedIn, isTotp,
   async (req, res) => {
     try {
       // NOTE: if there is no film with the specified id, the delete operation is considered successful.
-      const numChanges = await filmDao.deleteFilm(req.user.id, req.params.id);
+      const numChanges = await cloudDao.deleteFilm(req.user.id, req.params.id);
       //res.status(200).end();
       res.status(200).json(numChanges);
     } catch (err) {
@@ -374,6 +374,14 @@ app.delete('/api/films/:id', isLoggedIn, isTotp,
     }
   }
 );
+
+// GET /api/services-usage
+// Returns usage statistics for storage, computation, and data_transfer services.
+app.get('/api/services-usage', (req, res) => {
+  cloudDao.getServiceUsage()
+    .then((data) => res.json(data))
+    .catch((err) => res.status(500).json({ error: 'Errore nel recupero delle squadre' }));
+});
 
 
 /*** Users APIs ***/

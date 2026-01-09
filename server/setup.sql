@@ -89,7 +89,6 @@ INSERT INTO "datatransfer" ("service_id","min_gb","max_gb","price_per_gb") VALUE
 CREATE TABLE IF NOT EXISTS "orders" (
     "order_id" INTEGER PRIMARY KEY AUTOINCREMENT,
     "user_id" INTEGER NOT NULL,
-    "service_id" INTEGER NOT NULL,
     "num_months" INTEGER NOT NULL DEFAULT 1,
     "timestamp" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
@@ -98,13 +97,12 @@ CREATE TABLE IF NOT EXISTS "orders" (
     "data_gb" INTEGER NOT NULL,
 
     FOREIGN KEY ("user_id") REFERENCES "users"("user_id"),
-    FOREIGN KEY ("service_id") REFERENCES "services"("service_id"),
     FOREIGN KEY ("ram_gb") REFERENCES "computation"("ram_gb")
 );
-INSERT INTO "orders" ("user_id", "service_id", "num_months", "ram_gb", "storage_tb", "data_gb") VALUES
-(1, 1, 1, 32, 10, 10),
-(1, 1, 1, 128, 25, 50),
-(2, 1, 1, 32, 15, 100),
-(2, 1, 1, 128, 20, 100);
+INSERT INTO "orders" ("user_id", "num_months", "ram_gb", "storage_tb", "data_gb") VALUES
+(1, 1, 32, 10, 10),
+(1, 2, 128, 25, 50),
+(2, 3, 32, 15, 100),
+(2, 1, 128, 20, 100);
 
 COMMIT;

@@ -14,7 +14,7 @@ import { Routes, Route, Outlet, Link, useParams, Navigate, useNavigate } from 'r
 
 //import FILMS from './films';
 
-import { CloudStatusLayout, GenericLayout, NotFoundLayout, TableLayout, AddLayout, EditLayout, LoginLayout, TotpLayout } from './components/Layout';
+import { GenericLayout, NotFoundLayout, LoginLayout, TotpLayout } from './components/Layout';
 import API from './API.js';
 
 function App() {
@@ -188,11 +188,7 @@ function App() {
       //            disableActions={!loggedInTotp}
       //            dirty={dirty} setDirty={setDirty} handleErrors={handleErrors} />
       //            : <Navigate replace to='/' />} />
-      //       <Route path="*" element={<NotFoundLayout />} />
       //     </Route> */}
-      //     <Route path='/login' element={ <LoginWithTotp loggedIn={loggedIn} login={handleLogin}
-      //                                   user={user} setLoggedInTotp={setLoggedInTotp} /> } />
-      //     <Route path="/"element={ <CloudStatusLayout loggedIn={loggedIn} user={user} loggedInTotp={loggedInTotp} logout={handleLogout} />} />
       //   </Routes>
       // </Container>
 
@@ -201,7 +197,7 @@ function App() {
         <Route path="/" element={<GenericLayout loggedIn={loggedIn} loggedInTotp={loggedInTotp} user={user} logout={handleLogout} />} />
         <Route path='/login' element={ <LoginWithTotp loggedIn={loggedIn} login={handleLogin}user={user} setLoggedInTotp={setLoggedInTotp} /> } />
 
-        <Route path="*" element={<h2>Page Not Found</h2>} />
+        <Route path="*" element={<NotFoundLayout />} />
       </Routes>
     </Container>
   );

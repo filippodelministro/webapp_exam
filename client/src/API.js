@@ -142,6 +142,44 @@ function deleteFilm(filmId) {
   )
 }
 
+/**
+ * This function fetches service usage values from the back-end.
+ */
+// export const getServiceUsage = async () => {
+//   return getJson(
+//     fetch(SERVER_URL + 'services-usage', { credentials: 'include' })
+//   ).then((data) => {
+//     // Transform server response into the structure expected by CloudStatusLayout
+//     const status = {
+//       computational: { used: 0, max: 0 },
+//       storage: { used: 0, max: 0 },
+//       dataTransfer: { used: 0, max: 0 },
+//     };
+
+//     data.forEach((service) => {
+//       if (service.service_name === 'computation') {
+//         status.computational.used = service.used_value;
+//         status.computational.max = service.total_value;
+//       } else if (service.service_name === 'storage') {
+//         status.storage.used = service.used_value;
+//         status.storage.max = service.total_value;
+//       } else if (service.service_name === 'data_transfer') {
+//         status.dataTransfer.used = service.used_value;
+//         status.dataTransfer.max = service.total_value;
+//       }
+//     });
+
+//     return status;
+//   });
+// };
+
+const getServiceUsage = async () => {
+  const data = await getJson(
+    fetch(SERVER_URL + 'services-usage', { credentials: 'include' })
+  );
+  return data;
+};
+
 
 /*** Authentication functions ***/
 
@@ -201,6 +239,6 @@ const logOut = async() => {
   )
 }
 
-const API = { getFilms, updateFilm, addFilm, deleteFilm, setFilmFavorite, setFilmRating,
+const API = { getFilms, updateFilm, addFilm, deleteFilm, setFilmFavorite, setFilmRating, getServiceUsage,
               logIn, getUserInfo, logOut, totpVerify };
 export default API;
