@@ -175,20 +175,20 @@ const convertListOrdersFromDbRecord = (dbRecord) => {
 
   return listOrders;
 }
-exports.listOrders = (username) => {
+exports.getOrders = () => {
     return new Promise((resolve, reject) => {
         const sql = `
         select order_id, num_months, timestamp, ram_gb, storage_tb, data_gb
         from orders o inner join users u on o.user_id = u.user_id
-        where u.name = ?
+        where u.name = "John"
 `;
 
-        db.all(sql, [username], (err, rows) => {
+        db.all(sql, [], (err, rows) => {
             if (err) {
                 reject(err);
             } else {
-                const teams = rows.map(convertListOrdersFromDbRecord);
-                resolve(teams);
+                const data = rows.map(convertListOrdersFromDbRecord);
+                resolve(data);
             }
         });
     });

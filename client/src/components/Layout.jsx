@@ -47,7 +47,7 @@ function NewOrderLayout(props) {
   );
 }
 
-function OldOrderLayout() {
+function OldOrderLayout({ loggedIn, loggedInTotp }) {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
 
@@ -57,77 +57,95 @@ function OldOrderLayout() {
       .catch(() => setError('Failed to load orders'));
   }, []);
 
-  if (error) return <p>{error}</p>;
+  const handleCancel = async (orderId) => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+
+    try {
+      await API.cancelOrder(orderId); // Call your API
+      setOrders(prev => prev.filter(o => o.orderId !== orderId));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to cancel order.");
+    }
+  };
+
+  if (error) return <p className="orders-error">{error}</p>;
 
   return (
-    <>
-      <h2>Old Order Layout</h2>
+    <div className="orders-container">
+      <h2 className="orders-title">Old Orders</h2>
 
       {orders.length === 0 ? (
-        <p>No orders found</p>
+        <p className="orders-empty">No orders found</p>
       ) : (
-        <table>
+        <table className="orders-table">
           <thead>
             <tr>
-              <th>Order ID</th><th>Months</th><th>Date</th><th>RAM (GB)</th><th>Storage (TB)</th><th>Data (GB)</th>
+              <th>Order ID</th><th>Months</th><th>Date</th><th>RAM (GB)</th><th>Storage (TB)</th><th>Data (GB)</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {orders.map((o) => (
-              <tr key={o.orderId}>
+            {orders.map((o, index) => (
+              <tr key={o.orderId ?? index}>
                 <td>{o.orderId}</td>
                 <td>{o.numMonths}</td>
-                <td>{new Date(o.timestamp).toLocaleDateString()}</td>
+                <td>{o.timestamp ? new Date(o.timestamp).toLocaleDateString() : '–'}</td>
                 <td>{o.ramGb}</td>
                 <td>{o.storageTb}</td>
                 <td>{o.dataGb}</td>
+                <td>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => handleCancel(o.orderId)}
+                    disabled={!loggedInTotp}
+                    title={!loggedInTotp ? "Enable 2FA to cancel orders" : ""}
+                  >
+                    <i className='bi bi-trash'></i>
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
-    </>
-  );
-}
-
-function computationCard(service, used = 0) {
-  const percent = service.maxInstances ? Math.round((used / service.maxInstances) * 100) : 0;
-
-  return (
-    <div key={service.id} className="serviceCard">
-      <h4 className="serviceCardTitle">{service.name}</h4>
-
-      <div className="progress-bar">
-        <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
-      </div>
-      <p>{used}/{service.maxInstances} used</p>
-
-      <p><strong>RAM:</strong> {service.ramTier1}/{service.ramTier2}/{service.ramTier3} GB</p>
-      <p><strong>MinStorage:</strong> {service.minStorageTier1 ?? '–'}/{service.minStorageTier2 ?? '–'}/{service.minStorageTier3 ?? '–'} GB</p>
-      <p><strong>Price:</strong> €{service.priceTier1}/€{service.priceTier2}/€{service.priceTier3}</p>
     </div>
   );
 }
 
-function storageCard(service, used = 0) {
-  const percent = service.maxGlobalStorage ? Math.round((used / service.maxGlobalStorage) * 100) : 0;
+function ComputationCard({ service, used }) {
+  const percent = service.maxInstances ? Math.round((used / service.maxInstances) * 100) : 0;
 
   return (
-    <div key={service.id} className="serviceCard">
+    <div className="serviceCard">
+      <h4 className="serviceCardTitle">{service.name}</h4>
+      <div className="progress-bar">
+        <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
+      </div>
+      <p>{used}/{service.maxInstances} used</p>
+      <p><strong>RAM:</strong> {service.ramTier1}/{service.ramTier2}/{service.ramTier3} GB</p>
+    </div>
+  );
+}
+
+function StorageCard({ service, used = 0 }) {
+  const percent = service.maxGlobalStorage ? Math.round((used / service.maxGlobalStorage) * 100): 0;
+
+  return (
+    <div className="serviceCard">
       <h4 className="serviceCardTitle">{service.name}</h4>
 
       <div className="progress-bar">
         <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
       </div>
-      <p>{used}/{service.maxGlobalStorage} TB used</p>
 
-      <p><strong>MinStorage per order:</strong> {service.minStorageTbPerOrder}TB</p>
+      <p>{used}/{service.maxGlobalStorage} TB used</p>
+      <p><strong>Min Storage per order:</strong> {service.minStorageTbPerOrder} TB</p>
       <p><strong>Price:</strong> €{service.price}/TB/month</p>
     </div>
   );
 }
 
-function datatransferCard(service, used = 0) {
+function DataTransferCard({ service, used = 0 }) {
   const percent = service.tier1 ? Math.round((used / service.tier1) * 100) : 0;
 
   const basePrice = service.base_price;
@@ -135,12 +153,13 @@ function datatransferCard(service, used = 0) {
   const tier2Price = (service.base_price * service.tier2_multiplier).toFixed(2);
 
   return (
-    <div key={service.id} className="serviceCard">
+    <div className="serviceCard">
       <h4 className="serviceCardTitle">{service.name}</h4>
 
       <div className="progress-bar">
         <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
       </div>
+
       <p>{used} GB used</p>
 
       <p><strong>Up to {service.base_tier} GB:</strong> €{basePrice}</p>
@@ -190,42 +209,57 @@ function CloudStatusLayout() {
   // Calculate totals
   const totalComputation = computationData.reduce((acc, svc) => acc + svc.maxInstances, 0);
   const usedComputation = cloudStatus?.usedComputation || 0;
-  const computationPercent = totalComputation ? Math.round((usedComputation / totalComputation) * 100) : 0;
+  // const computationPercent = totalComputation ? Math.round((usedComputation / totalComputation) * 100) : 0;
 
   const totalStorage = storageData.reduce((acc, svc) => acc + svc.maxGlobalStorage, 0);
   const usedStorage = cloudStatus?.usedStorage || 0;
-  const storagePercent = totalStorage ? Math.round((usedStorage / totalStorage) * 100) : 0;
+  // const storagePercent = totalStorage ? Math.round((usedStorage / totalStorage) * 100) : 0;
 
   const totalData = datatransferData.reduce((acc, svc) => acc + svc.tier1, 0); 
   const usedData = cloudStatus?.usedData || 0;
-  const dataPercent = totalData ? Math.round((usedData / totalData) * 100) : 0;
+  // const dataPercent = totalData ? Math.round((usedData / totalData) * 100) : 0;
 
   return (
     <div>
 
       {/* Service cards */}
         <div className="servicesGrid">
-          {/* Computation cards */}
           {computationData.map(service => {
-              const used = Math.min(service.maxInstances, cloudStatus?.usedComputation || 0);
-              return (<div key={`computation-${service.id}`}>{computationCard(service, used)}</div>);
-            })}
+            const used = Math.min(service.maxInstances, cloudStatus?.usedComputation || 0);
+            return (
+              <ComputationCard 
+                key={`computation-${service.id}`} 
+                service={service} 
+                used={used} 
+              />
+            );
+          })}
 
-            {storageData.map(service => {
-              const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
-              return (<div key={`storage-${service.id}`}>{storageCard(service, used)}</div>);
-            })}
+          {storageData.map(service => {
+            const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
+            return (
+              <StorageCard
+                key={`storage-${service.id}`}
+                service={service}
+                used={used}
+              />
+            );
+          })}
 
-            {datatransferData.map(service => {
-              const used = cloudStatus?.usedData || 0;
-              return (<div key={`datatransfer-${service.id}`}>{datatransferCard(service, used)}</div>);
-            })}
+          {datatransferData.map(service => {
+            const used = cloudStatus?.usedData || 0;
+            return (
+              <DataTransferCard
+                key={`datatransfer-${service.id}`}
+                service={service}
+                used={used}
+              />
+            );
+          })}
         </div>
     </div>
   );
 }
-
-
 
 
 function GenericLayout(props) {
@@ -250,17 +284,8 @@ function GenericLayout(props) {
       <Row className="g-4 mt-5">
         <Col>
           <h3>Orders</h3>
-          <NewOrderLayout />
-          <OldOrderLayout user={props.user} />
-        </Col>
-      </Row>
-    )}
-
-    {/* Cancel button only if logged in and 2FA enabled */}
-    {props.loggedIn && props.loggedInTotp && (
-      <Row className="mt-4">
-        <Col>
-          <button className="btn btn-danger">Cancel Order</button>
+          <NewOrderLayout loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} logout={props.logout} />
+          <OldOrderLayout loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} logout={props.logout} />
         </Col>
       </Row>
     )}

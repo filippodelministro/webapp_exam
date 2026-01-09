@@ -65,6 +65,13 @@ const getCloudStatus = async () => {
   return data;
 };
 
+const getOrders = async () => {
+  const data = await getJson(
+    fetch(SERVER_URL + 'orders', { credentials: 'include' })
+  );
+  return data;
+};
+
 /*** Authentication functions ***/
 
 /**
@@ -123,6 +130,6 @@ const logOut = async() => {
   )
 }
 
-const API = { getComputationInfo, getStorageInfo, getDatatransferInfo, getCloudStatus,
+const API = { getComputationInfo, getStorageInfo, getDatatransferInfo, getCloudStatus, getOrders,
               logIn, getUserInfo, logOut, totpVerify };
 export default API;

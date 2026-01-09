@@ -136,6 +136,11 @@ app.get('/api/cloud-info', (req, res) => {
     .catch((err) => res.status(500).json({ error: 'Error in retrieving cloud info' }));
 });
 
+app.get('/api/orders', (req, res) => {
+  cloudDao.getOrders()
+    .then((data) => res.json(data))
+    .catch((err) => res.status(500).json({ error: 'Error in retrieving orders' }));
+});
 
 /*** Users APIs ***/
 
