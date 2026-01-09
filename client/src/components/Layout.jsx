@@ -172,21 +172,19 @@ function CloudStatusLayout() {
         <div className="servicesGrid">
           {/* Computation cards */}
           {computationData.map(service => {
-            const used = Math.min(service.maxInstances, cloudStatus?.usedComputation || 0);
-            return computationCard(service, used);
-          })}
+              const used = Math.min(service.maxInstances, cloudStatus?.usedComputation || 0);
+              return (<div key={`computation-${service.id}`}>{computationCard(service, used)}</div>);
+            })}
 
-          {/* Storage cards */}
-          {storageData.map(service => {
-            const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
-            return storageCard(service, used);
-          })}
+            {storageData.map(service => {
+              const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
+              return (<div key={`storage-${service.id}`}>{storageCard(service, used)}</div>);
+            })}
 
-          {/* Data transfer cards */}
-          {datatransferData.map(service => {
-            const used = cloudStatus?.usedData || 0;
-            return datatransferCard(service, used);
-          })}
+            {datatransferData.map(service => {
+              const used = cloudStatus?.usedData || 0;
+              return (<div key={`datatransfer-${service.id}`}>{datatransferCard(service, used)}</div>);
+            })}
         </div>
     </div>
   );

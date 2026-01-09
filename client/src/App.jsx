@@ -91,7 +91,6 @@ function App() {
     setLoggedInTotp(false);
     // clean up everything
     setUser(null);
-    setFilmList([]);
   };
 
   return (
