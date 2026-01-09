@@ -47,10 +47,45 @@ function NewOrderLayout(props) {
   );
 }
 
-function OldOrderLayout(props) {
-    return (
+function OldOrderLayout() {
+  const [orders, setOrders] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    API.getOrders()
+      .then(setOrders)
+      .catch(() => setError('Failed to load orders'));
+  }, []);
+
+  if (error) return <p>{error}</p>;
+
+  return (
     <>
-      <h2>Old order Layout</h2>
+      <h2>Old Order Layout</h2>
+
+      {orders.length === 0 ? (
+        <p>No orders found</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th><th>Months</th><th>Date</th><th>RAM (GB)</th><th>Storage (TB)</th><th>Data (GB)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((o) => (
+              <tr key={o.orderId}>
+                <td>{o.orderId}</td>
+                <td>{o.numMonths}</td>
+                <td>{new Date(o.timestamp).toLocaleDateString()}</td>
+                <td>{o.ramGb}</td>
+                <td>{o.storageTb}</td>
+                <td>{o.dataGb}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </>
   );
 }
@@ -216,7 +251,7 @@ function GenericLayout(props) {
         <Col>
           <h3>Orders</h3>
           <NewOrderLayout />
-          <OldOrderLayout />
+          <OldOrderLayout user={props.user} />
         </Col>
       </Row>
     )}

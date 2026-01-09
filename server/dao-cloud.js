@@ -163,3 +163,33 @@ exports.getCloudStatus = () => {
         });
     });
 };
+
+const convertListOrdersFromDbRecord = (dbRecord) => {
+  const listOrders = {};
+  listOrders.orderId = dbRecord.order_id;
+  listOrders.numMonths = dbRecord.num_months;
+  listOrders.timestamp = dbRecord.timestamp;
+  listOrders.ramGb = dbRecord.ram_gb;
+  listOrders.storageTb = dbRecord.storage_tb;
+  listOrders.dataGb = dbRecord.data_gb;
+
+  return listOrders;
+}
+exports.listOrders = (username) => {
+    return new Promise((resolve, reject) => {
+        const sql = `
+        select order_id, num_months, timestamp, ram_gb, storage_tb, data_gb
+        from orders o inner join users u on o.user_id = u.user_id
+        where u.name = ?
+`;
+
+        db.all(sql, [username], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                const teams = rows.map(convertListOrdersFromDbRecord);
+                resolve(teams);
+            }
+        });
+    });
+};
