@@ -57,35 +57,13 @@ function OldOrderLayout(props) {
 
 function computationCardStyle(service) {
   return (
-    <div
-      key={service.id}
-      style={{
-        border: '1px solid #ccc',
-        borderRadius: '8px',
-        padding: '16px',
-        width: '250px',
-        boxShadow: '2px 2px 10px rgba(0,0,0,0.1)',
-      }}
-    >
-      <h3>{service.name}</h3>
-      <p><strong>Max Instances:</strong> {service.maxInstances}</p>
+    <div key={service.id} className="serviceCard">
+      <h4 className="serviceCardTitle">{service.name}</h4>
+      <p><strong>Max:</strong> {service.maxInstances}</p>
       <div>
-        <h4>RAM (GB)</h4>
-        <p>Tier 1: {service.ramTier1}</p>
-        <p>Tier 2: {service.ramTier2}</p>
-        <p>Tier 3: {service.ramTier3}</p>
-      </div>
-      <div>
-        <h4>Min Storage (GB)</h4>
-        <p>Tier 1: {service.minStorageTier1}</p>
-        <p>Tier 2: {service.minStorageTier2}</p>
-        <p>Tier 3: {service.minStorageTier3}</p>
-      </div>
-      <div>
-        <h4>Price ($)</h4>
-        <p>Tier 1: {service.priceTier1}</p>
-        <p>Tier 2: {service.priceTier2}</p>
-        <p>Tier 3: {service.priceTier3}</p>
+        <p><strong>RAM:</strong> {service.ramTier1}/{service.ramTier2}/{service.ramTier3} GB</p>
+        <p><strong>MinStorage to link:</strong> {service.minStorageTier1 ?? '–'}/{service.minStorageTier2 ?? '–'}/{service.minStorageTier3 ?? '–'} GB</p>
+        <p><strong>Price:</strong> €{service.priceTier1}/€{service.priceTier2}/€{service.priceTier3}</p>
       </div>
     </div>
   );
@@ -93,17 +71,21 @@ function computationCardStyle(service) {
 
 function CloudStatusLayout() {
   const [computationData, setComputationData] = useState([]);
+  const [storageData, setStorageData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await API.getComputationInfo();
-        setComputationData(data);
+        const [computation, storage] = await Promise.all([
+          API.getComputationInfo(),
+        ]);
+        setComputationData(computation);
+        setStorageData(storage);
       } catch (err) {
         console.error(err);
-        setError('Failed to load computation info');
+        setError('Failed to load cloud services info');
       } finally {
         setLoading(false);
       }
@@ -112,16 +94,18 @@ function CloudStatusLayout() {
     fetchData();
   }, []);
 
-  if (loading) return <p>Loading computation info...</p>;
+  if (loading) return <p>Loading cloud services info...</p>;
   if (error) return <p>{error}</p>;
 
   return (
     <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
       {computationData.map((service) => computationCardStyle(service))}
-
     </div>
   );
 }
+
+
+
 
 function GenericLayout(props) {
 

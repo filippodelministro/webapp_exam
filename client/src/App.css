@@ -1,0 +1,22 @@
+/* Service card container */
+.serviceCard {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 8px;
+  width: 140px;
+  font-size: 12px;
+  background-color: #fafafa;
+  box-shadow: none;
+  margin-bottom: 10px;
+}
+
+/* Title */
+.serviceCardTitle {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
+
+/* Optional: small spacing for paragraphs */
+.serviceCard p {
+  margin: 2px 0;
+}
