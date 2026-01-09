@@ -43,6 +43,13 @@ const getServiceUsage = async () => {
   return data;
 };
 
+const getComputationInfo = async () => {
+  const data = await getJson(
+    fetch(SERVER_URL + 'computation-info', { credentials: 'include' })
+  );
+  return data;
+};
+
 
 /*** Authentication functions ***/
 
@@ -102,6 +109,6 @@ const logOut = async() => {
   )
 }
 
-const API = { getServiceUsage,
+const API = { getServiceUsage, getComputationInfo,
               logIn, getUserInfo, logOut, totpVerify };
 export default API;

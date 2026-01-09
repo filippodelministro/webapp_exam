@@ -118,6 +118,15 @@ app.get('/api/services-usage', (req, res) => {
 });
 
 
+// GET /api/computation-info
+// Returns usage statistics for storage, computation, and data_transfer services.
+app.get('/api/computation-info', (req, res) => {
+  cloudDao.getComputationInfo()
+    .then((data) => res.json(data))
+    .catch((err) => res.status(500).json({ error: 'Errore nel recupero delle squadre' }));
+});
+
+
 /*** Users APIs ***/
 
 function clientUserInfo(req) {

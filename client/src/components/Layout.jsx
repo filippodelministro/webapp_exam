@@ -55,125 +55,73 @@ function OldOrderLayout(props) {
   );
 }
 
-// function CloudStatusLayout(props) {
-//   const [serviceStatus, setServiceStatus] = useState({
-//     computational: { used: 0, max: 0 },
-//     storage: { used: 0, max: 0 },
-//     dataTransfer: { used: 0, max: 0 },
-//   });
-
-//   useEffect(() => {
-//     // Fetch service usage from the server
-//     API.getServiceUsage()
-//       .then((data) => {
-//       console.log("Raw API response:", data);
-//         // Transform API response into the format we need
-//         const status = {
-//           computational: { used: 0, max: 0 },
-//           storage: { used: 0, max: 0 },
-//           dataTransfer: { used: 0, max: 0 },
-//         };
-
-//         data.forEach((service) => {
-//           if (service.service_name === "computation") {
-//             status.computational.used = service.used_value;
-//             status.computational.max = service.total_value;
-//           } else if (service.service_name === "storage") {
-//             status.storage.used = service.used_value;
-//             status.storage.max = service.total_value;
-//           } else if (service.service_name === "data_transfer") {
-//             status.dataTransfer.used = service.used_value;
-//             status.dataTransfer.max = service.total_value;
-//           }
-//         });
-
-//         setServiceStatus(status);
-//       })
-//       .catch((err) => {
-//         console.error("Error fetching service usage:", err);
-//       });
-//   }, []);
-
-//   return (
-//     <>
-//       <h2>Cloud Status</h2>
-  
-//       <Row className="g-4">
-//         {/* Computational Service Box */}
-//         <Col md={4}>
-//           <Card>
-//             <Card.Body>
-//               <Card.Title>Computational Instances</Card.Title>
-//               <Card.Text>
-//                 {serviceStatus.computational.used} / {serviceStatus.computational.max} instances in use
-//               </Card.Text>
-//               <ProgressBar
-//                 now={(serviceStatus.computational.used / serviceStatus.computational.max) * 100 || 0}
-//                 label={`${Math.round((serviceStatus.computational.used / serviceStatus.computational.max) * 100) || 0}%`}
-//               />
-//             </Card.Body>
-//           </Card>
-//         </Col>
-
-//         {/* Storage Service Box */}
-//         <Col md={4}>
-//           <Card>
-//             <Card.Body>
-//               <Card.Title>Storage</Card.Title>
-//               <Card.Text>
-//                 {serviceStatus.storage.used}TB / {serviceStatus.storage.max}TB used
-//               </Card.Text>
-//               <ProgressBar
-//                 now={(serviceStatus.storage.used / serviceStatus.storage.max) * 100 || 0}
-//                 label={`${Math.round((serviceStatus.storage.used / serviceStatus.storage.max) * 100) || 0}%`}
-//               />
-//             </Card.Body>
-//           </Card>
-//         </Col>
-
-//         {/* Data Transfer Service Box */}
-//         <Col md={4}>
-//           <Card>
-//             <Card.Body>
-//               <Card.Title>Data Transfer</Card.Title>
-//               <Card.Text>
-//                 {serviceStatus.dataTransfer.used}TB / {serviceStatus.dataTransfer.max}TB used
-//               </Card.Text>
-//               <ProgressBar
-//                 now={(serviceStatus.dataTransfer.used / serviceStatus.dataTransfer.max) * 100 || 0}
-//                 label={`${Math.round((serviceStatus.dataTransfer.used / serviceStatus.dataTransfer.max) * 100) || 0}%`}
-//               />
-//             </Card.Body>
-//           </Card>
-//         </Col>
-//       </Row>
-//     </>
-//   );
-// }
-
-
-function CloudStatusLayout() {
-const [storageValue, setStorageValue] = useState(null);
-
-useEffect(() => {
-  async function getUsage() {
-    const data = await API.getServiceUsage();
-    if (data && data.length > 0) {
-      setStorageValue(data[0].global_value);
-    }
-  }
-
-  getUsage();
-}, []);
-
-return (
-  <div>
-    <h2>Cloud Status</h2>
-    <p>Storage available: {storageValue !== null ? storageValue : 'Loading...'}</p>
-  </div>
-);
+function computationCardStyle(service) {
+  return (
+    <div
+      key={service.id}
+      style={{
+        border: '1px solid #ccc',
+        borderRadius: '8px',
+        padding: '16px',
+        width: '250px',
+        boxShadow: '2px 2px 10px rgba(0,0,0,0.1)',
+      }}
+    >
+      <h3>{service.name}</h3>
+      <p><strong>Max Instances:</strong> {service.maxInstances}</p>
+      <div>
+        <h4>RAM (GB)</h4>
+        <p>Tier 1: {service.ramTier1}</p>
+        <p>Tier 2: {service.ramTier2}</p>
+        <p>Tier 3: {service.ramTier3}</p>
+      </div>
+      <div>
+        <h4>Min Storage (GB)</h4>
+        <p>Tier 1: {service.minStorageTier1}</p>
+        <p>Tier 2: {service.minStorageTier2}</p>
+        <p>Tier 3: {service.minStorageTier3}</p>
+      </div>
+      <div>
+        <h4>Price ($)</h4>
+        <p>Tier 1: {service.priceTier1}</p>
+        <p>Tier 2: {service.priceTier2}</p>
+        <p>Tier 3: {service.priceTier3}</p>
+      </div>
+    </div>
+  );
 }
 
+function CloudStatusLayout() {
+  const [computationData, setComputationData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await API.getComputationInfo();
+        setComputationData(data);
+      } catch (err) {
+        console.error(err);
+        setError('Failed to load computation info');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) return <p>Loading computation info...</p>;
+  if (error) return <p>{error}</p>;
+
+  return (
+    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
+      {computationData.map((service) => computationCardStyle(service))}
+
+    </div>
+  );
+}
 
 function GenericLayout(props) {
 
