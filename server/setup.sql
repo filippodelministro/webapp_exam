@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS "datatransfer" (
 );
 
 INSERT INTO "datatransfer" VALUES
-(3, 'datatransfer', 10, 1000, 1, 0.08, 0.05);
+(3, 'datatransfer', 10, 1000, 1, 0.8, 0.5);
 
 --------------------------------------------------
 -- ORDERS

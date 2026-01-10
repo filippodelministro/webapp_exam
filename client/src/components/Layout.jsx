@@ -38,7 +38,68 @@ function TotpLayout(props) {
     </Row>
   );
 }
-  
+
+
+function computePrice(ramGb, storageTb, dataGb, computationData, storageData, datatransferData) {
+  // --- Computation price ---
+  let compPrice = 0;
+  let minStorageRequired = 0;
+
+  // find the computation service that matches the RAM tier
+  const compService = computationData[0];
+  if (!compService) throw new Error("No computation service available");
+
+  if (ramGb === compService.ramTier1) {
+    compPrice = compService.priceTier1;
+    minStorageRequired = compService.minStorageTier1 || 0;
+  } else if (ramGb === compService.ramTier2) {
+    compPrice = compService.priceTier2;
+    minStorageRequired = compService.minStorageTier2 || 0;
+  } else if (ramGb === compService.ramTier3) {
+    compPrice = compService.priceTier3;
+    minStorageRequired = compService.minStorageTier3 || 0;
+  } else {
+    throw new Error(`Invalid RAM size ${ramGb} for computation service`);
+  }
+
+  if (storageTb < minStorageRequired) {
+    throw new Error(`Storage too low for selected RAM (${ramGb} GB requires at least ${minStorageRequired} TB)`); 
+  }
+
+  // --- Storage price ---
+  const storageService = storageData[0]; 
+  if (!storageService) throw new Error("No storage service available");
+
+  let storagePrice = storageTb * storageService.price; 
+
+  // --- Data transfer price ---
+  const dataService = datatransferData[0]; 
+  if (!dataService) throw new Error("No data transfer service available");
+
+  // const baseData = dataService.base_tier; 
+  const base_price = dataService.base_price;
+  const base_tier = dataService.base_tier;
+  const tier1 = dataService.tier1;
+  const tier_mul1 = dataService.tier1_multiplier;
+  const tier_mul2 = dataService.tier2_multiplier;
+  let dataPrice = base_price;
+
+  if (dataGb > base_tier && dataGb - base_tier <= tier1) {
+    // ((60-10)/10)*(1 euro*0,80 percent)
+    dataPrice += ((dataGb - base_tier)/base_tier) * (base_price * tier_mul1) ;
+  }
+  else if (dataGb - base_tier > tier1) {
+    // ((1000)/10)*(1 euro*0,80 percent) + ((1060-1000)/10)*(1 euro*0,50 percent)
+    dataPrice += (tier1/base_tier) * (base_price * tier_mul1);
+    dataPrice += ((dataGb - base_tier - tier1)/base_tier) * (base_price * tier_mul2);
+  }
+
+  const totalPrice = compPrice + storagePrice + dataPrice;
+
+  return totalPrice;
+}
+
+
 function NewOrderLayout(props) {
     return (
     <>
@@ -47,28 +108,30 @@ function NewOrderLayout(props) {
   );
 }
 
-function OldOrderLayout({ user, loggedIn, loggedInTotp }) {
+function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData }) {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!user?.username) return;
+
     API.getOrders()
-    .then(setOrders)
+      .then(setOrders)
       .catch(() => setError('Failed to load orders'));
-  }, []);
+  }, [user]);
 
-  const handleCancel = async (orderId) => {
-    if (!window.confirm("Are you sure you want to cancel this order?")) return;
 
-    try {
-      await API.cancelOrder(orderId);
-      setOrders(prev => prev.filter(o => o.orderId !== orderId));
-    } catch (err) {
-      console.error(err);
-      alert("Failed to cancel order.");
-    }
-  };
+  // const handleCancel = async (orderId) => {
+  //   if (!window.confirm("Are you sure you want to cancel this order?")) return;
+
+  //   try {
+  //     await API.cancelOrder(orderId);
+  //     setOrders(prev => prev.filter(o => o.orderId !== orderId));
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Failed to cancel order.");
+  //   }
+  // };
 
   if (error) return <p className="orders-error">{error}</p>;
 
@@ -121,7 +184,7 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp }) {
                   <td>{o.ramGb}</td>
                   <td>{o.storageTb}</td>
                   <td>{o.dataGb}</td>
-                  <td>da calcolare prezzi</td>
+                  <td>{computePrice(o.ramGb, o.storageTb, o.dataGb, computationData, storageData, datatransferData)} €</td>
                   <td>
                     <span title={hoverText}>
                       <button
@@ -217,7 +280,50 @@ function DataTransferCard({ service, used = 0 }) {
   );
 }
 
-function CloudStatusLayout() {
+function CloudStatusLayout({ computationData, storageData, datatransferData, cloudStatus }) {
+  if (!computationData || !storageData || !datatransferData || !cloudStatus) {
+    return <p>Loading cloud services info...</p>;
+  }
+
+  return (
+    <div className="servicesGrid">
+      {computationData.map(service => {
+        const used = Math.min(service.maxInstances, cloudStatus?.usedComputation || 0);
+        return (
+          <ComputationCard 
+            key={`computation-${service.id}`} 
+            service={service} 
+            used={used} 
+          />
+        );
+      })}
+
+      {storageData.map(service => {
+        const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
+        return (
+          <StorageCard
+            key={`storage-${service.id}`}
+            service={service}
+            used={used}
+          />
+        );
+      })}
+
+      {datatransferData.map(service => {
+        const used = cloudStatus?.usedData || 0;
+        return (
+          <DataTransferCard
+            key={`datatransfer-${service.id}`}
+            service={service}
+            used={used}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function GenericLayout(props) {
   const [computationData, setComputationData] = useState([]);
   const [storageData, setStorageData] = useState([]);
   const [datatransferData, setDatatransferData] = useState([]);
@@ -239,7 +345,6 @@ function CloudStatusLayout() {
         setStorageData(storage);
         setDatatransferData(datatransfer);
         setCloudStatus(status[0]);
-
       } catch (err) {
         console.error(err);
         setError('Failed to load cloud services info');
@@ -254,64 +359,6 @@ function CloudStatusLayout() {
   if (loading) return <p>Loading cloud services info...</p>;
   if (error) return <p>{error}</p>;
 
-  // Calculate totals
-  const totalComputation = computationData.reduce((acc, svc) => acc + svc.maxInstances, 0);
-  const usedComputation = cloudStatus?.usedComputation || 0;
-  // const computationPercent = totalComputation ? Math.round((usedComputation / totalComputation) * 100) : 0;
-
-  const totalStorage = storageData.reduce((acc, svc) => acc + svc.maxGlobalStorage, 0);
-  const usedStorage = cloudStatus?.usedStorage || 0;
-  // const storagePercent = totalStorage ? Math.round((usedStorage / totalStorage) * 100) : 0;
-
-  const totalData = datatransferData.reduce((acc, svc) => acc + svc.tier1, 0); 
-  const usedData = cloudStatus?.usedData || 0;
-  // const dataPercent = totalData ? Math.round((usedData / totalData) * 100) : 0;
-
-  return (
-    <div>
-
-      {/* Service cards */}
-        <div className="servicesGrid">
-          {computationData.map(service => {
-            const used = Math.min(service.maxInstances, cloudStatus?.usedComputation || 0);
-            return (
-              <ComputationCard 
-                key={`computation-${service.id}`} 
-                service={service} 
-                used={used} 
-              />
-            );
-          })}
-
-          {storageData.map(service => {
-            const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
-            return (
-              <StorageCard
-                key={`storage-${service.id}`}
-                service={service}
-                used={used}
-              />
-            );
-          })}
-
-          {datatransferData.map(service => {
-            const used = cloudStatus?.usedData || 0;
-            return (
-              <DataTransferCard
-                key={`datatransfer-${service.id}`}
-                service={service}
-                used={used}
-              />
-            );
-          })}
-        </div>
-    </div>
-  );
-}
-
-
-function GenericLayout(props) {
-
   return (
     <>
       <Row>
@@ -320,25 +367,40 @@ function GenericLayout(props) {
         </Col>
       </Row>
 
-    {/* Cloud Status always visible */}
-    <Row className="g-4 mt-4">
-      <Col>
-        <CloudStatusLayout />
-      </Col>
-    </Row>
-
-    {/* Orders visible only if logged in */}
-    {props.loggedIn && (
-      <Row className="g-4 mt-5">
+      <Row className="g-4 mt-4">
         <Col>
-          <h3>Orders</h3>
-          <NewOrderLayout loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} logout={props.logout} />
-          <OldOrderLayout loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} logout={props.logout} />
+          <CloudStatusLayout
+            computationData={computationData}
+            storageData={storageData}
+            datatransferData={datatransferData}
+            cloudStatus={cloudStatus}
+          />
         </Col>
       </Row>
-    )}
-  </>
-);
+
+      {props.loggedIn && (
+        <Row className="g-4 mt-5">
+          <Col>
+            <h3>Orders</h3>
+            <NewOrderLayout 
+              loggedIn={props.loggedIn} 
+              user={props.user} 
+              loggedInTotp={props.loggedInTotp} 
+              logout={props.logout} 
+            />
+            <OldOrderLayout
+              loggedIn={props.loggedIn}
+              user={props.user}
+              loggedInTotp={props.loggedInTotp}
+              computationData={computationData}
+              storageData={storageData}
+              datatransferData={datatransferData}
+            />
+          </Col>
+        </Row>
+      )}
+    </>
+  );
 }
 
 
