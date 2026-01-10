@@ -82,30 +82,61 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp }) {
         <table className="orders-table">
           <thead>
             <tr>
-              <th>Order ID</th><th>Months</th><th>Date</th><th>RAM (GB)</th><th>Storage (TB)</th><th>Data (GB)</th><th>Actions</th>
+              <th>Order ID</th><th>Subscribed</th><th>Expiring</th><th>RAM (GB)</th><th>Storage (TB)</th><th>Data (GB)</th><th>Tot Price (€)</th><th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {orders.map((o, index) => (
-              <tr key={o.orderId ?? index}>
-                <td>{o.orderId}</td>
-                <td>{o.numMonths}</td>
-                <td>{o.timestamp ? new Date(o.timestamp).toLocaleDateString() : '–'}</td>
-                <td>{o.ramGb}</td>
-                <td>{o.storageTb}</td>
-                <td>{o.dataGb}</td>
-                <td>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => handleCancel(o.orderId)}
-                    disabled={!loggedInTotp}
-                    title={!loggedInTotp ? "Enable 2FA to cancel orders" : ""}
-                  >
-                    <i className='bi bi-trash'></i>
-                  </button>
-                </td>
-              </tr>
-            ))}
+         <tbody>
+            {orders.map((o, index) => {
+              const subscribedDate = o.timestamp ? new Date(o.timestamp) : null;
+              let expiringDate = null;
+
+              // set the expiring date based on subscribed date and numMonths
+              if (subscribedDate && o.numMonths) {
+                expiringDate = new Date(subscribedDate.getTime());
+                expiringDate.setMonth(expiringDate.getMonth() + o.numMonths);
+              }
+
+              // Calculate the cutoff date for cancellation: 1 month before expiring
+              let cancelAllowed = false;
+              if (expiringDate) {
+                const today = new Date();
+                const cutoffDate = new Date(expiringDate.getTime());
+                cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+                cancelAllowed = today < cutoffDate;
+              }
+
+              // Inform the user about the reason why cancel is disabled
+              let hoverText = '';
+              if (!loggedInTotp) {
+                hoverText = "Enable 2FA to cancel orders";
+              } else if (!cancelAllowed) {
+                hoverText = "Cannot cancel in the last month of subscription";
+              }
+
+              return (
+                <tr key={o.orderId ?? index}>
+                  <td>{o.orderId}</td>
+                  <td>{subscribedDate ? subscribedDate.toLocaleDateString() : '–'}</td>
+                  <td>{expiringDate ? expiringDate.toLocaleDateString() : '–'}</td>
+                  <td>{o.ramGb}</td>
+                  <td>{o.storageTb}</td>
+                  <td>{o.dataGb}</td>
+                  <td>da calcolare prezzi</td>
+                  <td>
+                    <span title={hoverText}>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleCancel(o.orderId)}
+                        disabled={!loggedInTotp || !cancelAllowed}
+                        title={hoverText}
+                        >
+                        <i className='bi bi-trash'></i>
+                      </button>
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
