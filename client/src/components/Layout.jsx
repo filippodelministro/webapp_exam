@@ -141,7 +141,7 @@ function NewOrderLayout(props) {
   );
 }
 
-function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData }) {
+function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData, onOrderChange }) {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -162,20 +162,25 @@ const handleCancelClick = (orderId) => {
   setShowConfirm(true);
 };
 
-  const confirmCancel = async () => {
-    setCancelLoading(true);
-    try {
-      await API.deleteOrder(orderToCancel);
-      setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
-      setShowConfirm(false);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to cancel order.");
-    } finally {
-      setCancelLoading(false);
-      setOrderToCancel(null);
+const confirmCancel = async () => {
+  setCancelLoading(true);
+  try {
+    await API.deleteOrder(orderToCancel);
+    setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
+
+    if (onOrderChange) {
+      onOrderChange(); // 🔄 refresh cloud status
     }
-  };
+
+    setShowConfirm(false);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to cancel order.");
+  } finally {
+    setCancelLoading(false);
+    setOrderToCancel(null);
+  }
+};
 
   if (error) return <p className="orders-error">{error}</p>;
 
@@ -377,6 +382,8 @@ function CloudStatusLayout({ computationData, storageData, datatransferData, clo
   );
 }
 
+
+
 function GenericLayout(props) {
   const [computationData, setComputationData] = useState([]);
   const [storageData, setStorageData] = useState([]);
@@ -385,8 +392,7 @@ function GenericLayout(props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
+  const fetchCloudData = async () => {
       try {
         const [computation, storage, datatransfer, status] = await Promise.all([
           API.getComputationInfo(),
@@ -407,7 +413,8 @@ function GenericLayout(props) {
       }
     };
 
-    fetchData();
+  useEffect(() => {
+    fetchCloudData();
   }, []);
 
   if (loading) return <p>Loading cloud services info...</p>;
@@ -449,6 +456,7 @@ function GenericLayout(props) {
               computationData={computationData}
               storageData={storageData}
               datatransferData={datatransferData}
+              onOrderChange={fetchCloudData}
             />
           </Col>
         </Row>
