@@ -136,15 +136,15 @@ const convertListOrdersFromDbRecord = (dbRecord) => {
 
   return listOrders;
 }
-exports.getOrders = () => {
+exports.getOrders = (email) => {
     return new Promise((resolve, reject) => {
         const sql = `
         select order_id, num_months, timestamp, ram_gb, storage_tb, data_gb
         from orders o inner join users u on o.user_id = u.user_id
-        where u.name = "John"
+        where u.email = ?
 `;
 
-        db.all(sql, [], (err, rows) => {
+        db.all(sql, [email], (err, rows) => {
             if (err) {
                 reject(err);
             } else {

@@ -47,13 +47,14 @@ function NewOrderLayout(props) {
   );
 }
 
-function OldOrderLayout({ loggedIn, loggedInTotp }) {
+function OldOrderLayout({ user, loggedIn, loggedInTotp }) {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!user?.username) return;
     API.getOrders()
-      .then(setOrders)
+    .then(setOrders)
       .catch(() => setError('Failed to load orders'));
   }, []);
 
@@ -61,7 +62,7 @@ function OldOrderLayout({ loggedIn, loggedInTotp }) {
     if (!window.confirm("Are you sure you want to cancel this order?")) return;
 
     try {
-      await API.cancelOrder(orderId); // Call your API
+      await API.cancelOrder(orderId);
       setOrders(prev => prev.filter(o => o.orderId !== orderId));
     } catch (err) {
       console.error(err);
@@ -76,7 +77,7 @@ function OldOrderLayout({ loggedIn, loggedInTotp }) {
       <h2 className="orders-title">Old Orders</h2>
 
       {orders.length === 0 ? (
-        <p className="orders-empty">No orders found</p>
+        <p className="orders-empty">No previous orders</p>
       ) : (
         <table className="orders-table">
           <thead>

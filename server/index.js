@@ -136,16 +136,22 @@ app.get('/api/cloud-info', (req, res) => {
     .catch((err) => res.status(500).json({ error: 'Error in retrieving cloud info' }));
 });
 
-app.get('/api/orders', (req, res) => {
-  cloudDao.getOrders()
-    .then((data) => res.json(data))
-    .catch((err) => res.status(500).json({ error: 'Error in retrieving orders' }));
+// GET /api/orders
+app.get('/api/orders', isLoggedIn, (req, res) => {
+  const email = req.user.username;
+
+  cloudDao.getOrders(email)
+    .then((orders) => res.json(orders))
+    .catch(() =>
+      res.status(500).json({ error: 'Error retrieving orders' })
+    );
 });
 
 /*** Users APIs ***/
 
 function clientUserInfo(req) {
   const user=req.user;
+  console.log('DEBUG: clientUserInfo for user '+JSON.stringify(user));
 	return {id: user.id, username: user.username, name: user.name, canDoTotp: user.secret? true: false, isTotp: req.session.method === 'totp'};
 }
 
