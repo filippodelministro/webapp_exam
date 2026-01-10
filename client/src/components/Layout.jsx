@@ -1,5 +1,5 @@
 
-import { Row, Col, Button, Spinner, Alert, Toast, Card, ProgressBar, Modal } from 'react-bootstrap';
+import { Row, Col, Button, Spinner, Alert, Toast, Card, ProgressBar, Modal, Form } from 'react-bootstrap';
 import { Outlet, Link, useParams, Navigate, useLocation, useNavigate } from 'react-router';
 
 import { Navigation } from './Navigation';
@@ -133,11 +133,161 @@ function ConfirmDialog({
   );
 }
 
-function NewOrderLayout(props) {
-    return (
-    <>
-      <h2>New order Layout</h2>
-    </>
+function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange }) {
+  const [ramGb, setRamGb] = useState('');
+  const [storageTb, setStorageTb] = useState('');
+  const [dataGb, setDataGb] = useState('');
+  const [numMonths, setNumMonths] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [minStorage, setMinStorage] = useState(1);
+  const [minData, setMinData] = useState(1); // minimum data transfer
+
+  // Update minimum storage based on selected RAM
+  useEffect(() => {
+    if (!ramGb || !computationData) return;
+
+    const ramNumber = parseInt(ramGb);
+    let minStor = 1;
+
+    for (const service of computationData) {
+      if (ramNumber === service.ramTier1) minStor = service.minStorageTier1 || 1;
+      else if (ramNumber === service.ramTier2) minStor = service.minStorageTier2 || 1;
+      else if (ramNumber === service.ramTier3) minStor = service.minStorageTier3 || 1;
+    }
+
+    setMinStorage(minStor);
+
+    // Auto-update storageTb if below min
+    if (storageTb && parseInt(storageTb) < minStor) {
+      setStorageTb(minStor);
+    }
+  }, [ramGb, computationData]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+
+    const ram = parseInt(ramGb);
+    const storage = parseInt(storageTb);
+    const data = parseInt(dataGb);
+    const months = parseInt(numMonths);
+
+    if (!ram || !storage || !data || !months) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    if (storage < minStorage) {
+      setError(`Storage must be at least ${minStorage} TB for ${ram} GB RAM`);
+      return;
+    }
+
+    if (data < minData) {
+      setError(`Data Transfer must be at least ${minData} GB`);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months };
+      await API.createOrder(newOrder);
+
+      setSuccess('Order created successfully!');
+      setRamGb('');
+      setStorageTb('');
+      setDataGb('');
+      setNumMonths(1);
+
+      if (onOrderChange) onOrderChange();
+    } catch (err) {
+      console.error(err);
+      setError('Failed to create order');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="new-order-form">
+      <h4>Create New Order</h4>
+      {error && <Alert variant="danger">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>}
+
+      <Form onSubmit={handleSubmit}>
+        <Row className="mb-3">
+          {/* RAM Selection */}
+          <Col md={3}>
+            <Form.Group>
+              <Form.Label>RAM (GB)</Form.Label>
+              <Form.Select value={ramGb} onChange={e => setRamGb(e.target.value)}>
+                <option value="">Select RAM</option>
+                {computationData.map(service => (
+                  <optgroup key={service.id} label={service.name}>
+                    <option value={service.ramTier1}>{service.ramTier1} GB - €{service.priceTier1}/month</option>
+                    <option value={service.ramTier2}>{service.ramTier2} GB - €{service.priceTier2}/month</option>
+                    <option value={service.ramTier3}>{service.ramTier3} GB - €{service.priceTier3}/month</option>
+                  </optgroup>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Col>
+
+          {/* Storage Input */}
+          <Col md={3}>
+            <Form.Group>
+              <Form.Label>Storage (TB)</Form.Label>
+              <Form.Control
+                type="number"
+                min={minStorage}
+                value={storageTb}
+                onChange={e => setStorageTb(e.target.value)}
+                placeholder={`Min ${minStorage} TB`}
+              />
+              <Form.Text className="text-muted">
+                Minimum storage required: {minStorage} TB
+              </Form.Text>
+            </Form.Group>
+          </Col>
+
+          {/* Data Transfer Input */}
+          <Col md={3}>
+            <Form.Group>
+              <Form.Label>Data Transfer (GB)</Form.Label>
+              <Form.Control
+                type="number"
+                min={minData}
+                value={dataGb}
+                onChange={e => setDataGb(e.target.value)}
+                placeholder={`Min ${minData} GB`}
+              />
+              <Form.Text className="text-muted">
+                Enter the amount of data transfer in GB
+              </Form.Text>
+            </Form.Group>
+          </Col>
+
+          {/* Subscription Months */}
+          <Col md={3}>
+            <Form.Group>
+              <Form.Label>Months</Form.Label>
+              <Form.Control
+                type="number"
+                min={1}
+                value={numMonths}
+                onChange={e => setNumMonths(e.target.value)}
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Submitting...' : 'Create Order'}
+        </Button>
+      </Form>
+    </div>
   );
 }
 
@@ -444,10 +594,13 @@ function GenericLayout(props) {
           <Col>
             <h3>Orders</h3>
             <NewOrderLayout 
-              loggedIn={props.loggedIn} 
-              user={props.user} 
-              loggedInTotp={props.loggedInTotp} 
-              logout={props.logout} 
+              loggedIn={props.loggedIn}
+              user={props.user}
+              loggedInTotp={props.loggedInTotp}
+              computationData={computationData}
+              storageData={storageData}
+              datatransferData={datatransferData}
+              onOrderChange={fetchCloudData}
             />
             <OldOrderLayout
               loggedIn={props.loggedIn}
