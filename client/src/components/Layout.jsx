@@ -1,6 +1,6 @@
 
-import { Row, Col, Button, Spinner, Alert, Toast, Card, ProgressBar, Modal, Form } from 'react-bootstrap';
-import { Outlet, Link, useParams, Navigate, useLocation, useNavigate } from 'react-router';
+import { Row, Col, Button, Spinner, Alert, Modal, Form } from 'react-bootstrap';
+import { Link } from 'react-router';
 
 import { Navigation } from './Navigation';
 import { useEffect, useState } from 'react';
@@ -192,7 +192,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
     });
   }, [ramGb, computationData]);
 
-  // --- Dynamically calculate total price ---
+  // --- Dynamically calculate total price unsing computePrice function
   useEffect(() => {
     if (!ramGb || !storageTb || !dataGb || !computationData || !storageData || !datatransferData) {
       setTotalPrice(0);
@@ -200,54 +200,47 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
     }
 
     try {
-      const price = computePrice(
-        parseInt(ramGb),
-        parseInt(storageTb),
-        parseInt(dataGb),
-        computationData,
-        storageData,
-        datatransferData
-      ) * parseInt(numMonths);
+      const price = computePrice( parseInt(ramGb), parseInt(storageTb), parseInt(dataGb), computationData, storageData, datatransferData) * parseInt(numMonths);
       setTotalPrice(price);
     } catch (err) {
       setTotalPrice(0);
     }
   }, [ramGb, storageTb, dataGb, numMonths, computationData, storageData, datatransferData]);
 
+
+  //todo: understand
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
+    // e.preventDefault();
+    // setError(null);
+    // setSuccess(null);
 
     const ram = parseInt(ramGb);
     const storage = parseInt(storageTb);
     const data = parseInt(dataGb);
     const months = parseInt(numMonths);
 
+    // todo: all checks before ....
     if (!ram || !storage || !data || !months) {
       setError('Please fill in all fields');
       return;
     }
-
     if (storage < minStorage) {
       setError(`Storage must be at least ${minStorage} TB for ${ram} GB RAM`);
       return;
     }
-
     if (data < minData) {
       setError(`Data Transfer must be at least ${minData} GB`);
       return;
     }
-
     setLoading(true);
     try {
       const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months };
       await API.createOrder(newOrder);
 
       setSuccess('Order created successfully!');
-      setRamGb('');
-      setStorageTb('');
-      setDataGb('');
+      // setRamGb('');
+      // setStorageTb('');
+      // setDataGb('');
       setNumMonths(1);
       setTotalPrice(0);
 
@@ -294,16 +287,8 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
           <Col md={3}>
             <Form.Group>
               <Form.Label>Storage (TB)</Form.Label>
-              <Form.Control
-                type="number"
-                min={minStorage}
-                value={storageTb}
-                onChange={e => setStorageTb(e.target.value)}
-                placeholder={`Min ${minStorage} TB`}
-              />
-              <Form.Text className="text-muted">
-                Minimum storage required: {minStorage} TB
-              </Form.Text>
+              <Form.Control type="number" min={minStorage} value={storageTb} onChange={e => setStorageTb(e.target.value)} placeholder={`Min ${minStorage} TB`}/>
+              <Form.Text className="text-muted">Minimum storage required: {minStorage} TB</Form.Text>
             </Form.Group>
           </Col>
 
@@ -311,16 +296,8 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
           <Col md={3}>
             <Form.Group>
               <Form.Label>Data Transfer (GB)</Form.Label>
-              <Form.Control
-                type="number"
-                min={minData}
-                value={dataGb}
-                onChange={e => setDataGb(e.target.value)}
-                placeholder={`Min ${minData} GB`}
-              />
-              <Form.Text className="text-muted">
-                Enter the amount of data transfer in GB
-              </Form.Text>
+              <Form.Control type="number" min={minData} value={dataGb} onChange={e => setDataGb(e.target.value)} placeholder={`Min ${minData} GB`}/>
+              <Form.Text className="text-muted">Enter the amount of data transfer in GB</Form.Text>
             </Form.Group>
           </Col>
 
@@ -328,12 +305,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
           <Col md={3}>
             <Form.Group>
               <Form.Label>Months</Form.Label>
-              <Form.Control
-                type="number"
-                min={1}
-                value={numMonths}
-                onChange={e => setNumMonths(e.target.value)}
-              />
+              <Form.Control type="number" min={1} value={numMonths} onChange={e => setNumMonths(e.target.value)}/>
             </Form.Group>
           </Col>
         </Row>
@@ -600,8 +572,6 @@ function CloudStatusLayout({ computationData, storageData, datatransferData, clo
   );
 }
 
-
-
 function GenericLayout(props) {
   const [computationData, setComputationData] = useState([]);
   const [storageData, setStorageData] = useState([]);
@@ -609,9 +579,9 @@ function GenericLayout(props) {
   const [cloudStatus, setCloudStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-const [selectedRam, setSelectedRam] = useState(null);
-const [selectedStorage, setSelectedStorage] = useState(null);
-const [selectedData, setSelectedData] = useState(null);
+  const [selectedRam, setSelectedRam] = useState(null);
+  const [selectedStorage, setSelectedStorage] = useState(null);
+  const [selectedData, setSelectedData] = useState(null);
 
   const fetchCloudData = async () => {
       try {
@@ -651,42 +621,15 @@ const [selectedData, setSelectedData] = useState(null);
 
       <Row className="g-4 mt-2">
         <Col>
-<CloudStatusLayout
-  computationData={computationData}
-  storageData={storageData}
-  datatransferData={datatransferData}
-  cloudStatus={cloudStatus}
-  selectedRam={selectedRam}
-  selectedStorage={selectedStorage}
-  selectedData={selectedData}
-/>
+          <CloudStatusLayout computationData={computationData} storageData={storageData} datatransferData={datatransferData} cloudStatus={cloudStatus} selectedRam={selectedRam} selectedStorage={selectedStorage} selectedData={selectedData}/>
         </Col>
       </Row>
 
       {props.loggedIn && (
         <Row className="g-4 mt-2">
           <Col>
-<NewOrderLayout
-  computationData={computationData}
-  storageData={storageData}
-  datatransferData={datatransferData}
-  selectedRam={selectedRam}
-  setSelectedRam={setSelectedRam}
-  selectedStorage={selectedStorage}
-  setSelectedStorage={setSelectedStorage}
-  selectedData={selectedData}
-  setSelectedData={setSelectedData}
-  onOrderChange={fetchCloudData}
-/>
-            <OldOrderLayout
-              loggedIn={props.loggedIn}
-              user={props.user}
-              loggedInTotp={props.loggedInTotp}
-              computationData={computationData}
-              storageData={storageData}
-              datatransferData={datatransferData}
-              onOrderChange={fetchCloudData}
-            />
+            <NewOrderLayout computationData={computationData} storageData={storageData} datatransferData={datatransferData} selectedRam={selectedRam} setSelectedRam={setSelectedRam} selectedStorage={selectedStorage} setSelectedStorage={setSelectedStorage} selectedData={selectedData} setSelectedData={setSelectedData} onOrderChange={fetchCloudData}/>
+            <OldOrderLayout loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} computationData={computationData} storageData={storageData} datatransferData={datatransferData} onOrderChange={fetchCloudData}/>
           </Col>
         </Row>
       )}
