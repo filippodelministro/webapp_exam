@@ -39,6 +39,49 @@ function TotpLayout(props) {
   );
 }
 
+function CloudStatusLayout(props) {
+  return (
+    <Row>
+      <Col>
+        <h2>cloudStatus</h2>
+      </Col>
+    </Row>
+  );
+}
+
+function NewOrderLayout(props) {
+  return (
+    <Row>
+      <Col>
+        <h2>new order</h2>
+      </Col>
+    </Row>
+  );
+}
+
+function ConfirmDialog({ show, title = "Confirm action", message, confirmText = "Confirm", cancelText = "Cancel", variant = "danger", loading = false, onConfirm, onCancel,}) {
+  return (
+    <Modal show={show} onHide={onCancel} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>{title}</Modal.Title>
+      </Modal.Header>
+
+      <Modal.Body>
+        {message}
+      </Modal.Body>
+
+      <Modal.Footer>
+        <Button variant="secondary" onClick={onCancel} disabled={loading}>
+          {cancelText}
+        </Button>
+
+        <Button variant={variant} onClick={onConfirm} disabled={loading}>
+          {loading ? <Spinner size="sm" /> : confirmText}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+}
 
 function computePrice(ramGb, storageTb, dataGb, computationData, storageData, datatransferData) {
   // --- Computation price ---
@@ -99,48 +142,6 @@ function computePrice(ramGb, storageTb, dataGb, computationData, storageData, da
   return totalPrice;
 }
 
-function ConfirmDialog({
-  show,
-  title = "Confirm action",
-  message,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
-  variant = "danger",
-  loading = false,
-  onConfirm,
-  onCancel,
-}) {
-  return (
-    <Modal show={show} onHide={onCancel} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>{title}</Modal.Title>
-      </Modal.Header>
-
-      <Modal.Body>
-        {message}
-      </Modal.Body>
-
-      <Modal.Footer>
-        <Button variant="secondary" onClick={onCancel} disabled={loading}>
-          {cancelText}
-        </Button>
-
-        <Button variant={variant} onClick={onConfirm} disabled={loading}>
-          {loading ? <Spinner size="sm" /> : confirmText}
-        </Button>
-      </Modal.Footer>
-    </Modal>
-  );
-}
-
-function NewOrderLayout(props) {
-    return (
-    <>
-      <h2>New order Layout</h2>
-    </>
-  );
-}
-
 function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData, onOrderChange }) {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
@@ -149,38 +150,43 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storage
   const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
-    if (!user?.username) return;
+    if (!user?.username && loggedIn) return;
 
     API.getOrders()
       .then(setOrders)
       .catch(() => setError('Failed to load orders'));
   }, [user]);
 
-
-const handleCancelClick = (orderId) => {
-  setOrderToCancel(orderId);
-  setShowConfirm(true);
-};
-
-const confirmCancel = async () => {
-  setCancelLoading(true);
-  try {
-    await API.deleteOrder(orderToCancel);
-    setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
-
-    if (onOrderChange) {
-      onOrderChange(); // 🔄 refresh cloud status
+  // just show the confirm box
+  const handleCancelClick = (orderId) => {
+    if(loggedInTotp){
+      setOrderToCancel(orderId);
+      setShowConfirm(true);
     }
+  };
 
-    setShowConfirm(false);
-  } catch (err) {
-    console.error(err);
-    alert("Failed to cancel order.");
-  } finally {
-    setCancelLoading(false);
-    setOrderToCancel(null);
-  }
-};
+  // actually perform the deletion of the order if properly logged in
+  const confirmCancel = async () => {
+    if(loggedInTotp){
+      setCancelLoading(true);
+      try {
+        await API.deleteOrder(orderToCancel);
+        setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
+
+        if (onOrderChange) {
+          onOrderChange(); 
+        }
+
+        setShowConfirm(false);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to cancel order.");
+      } finally {
+        setCancelLoading(false);
+        setOrderToCancel(null);
+      }
+    }
+  };
 
   if (error) return <p className="orders-error">{error}</p>;
 
@@ -253,135 +259,19 @@ const confirmCancel = async () => {
         </table>
       )}
         <ConfirmDialog
-        show={showConfirm}
-        title="Cancel order"
-        message="Are you sure you want to cancel this order?"
-        confirmText="Yes, cancel"
-        loading={cancelLoading}
-        onConfirm={confirmCancel}
-        onCancel={() => setShowConfirm(false)}
-      />
-    </div>
+          show={showConfirm}
+          title="Cancel order"
+          message="Are you sure you want to cancel this order?"
+          confirmText="Yes, cancel"
+          loading={cancelLoading}
+          disabled={!loggedInTotp}
+          onConfirm={confirmCancel}
+          onCancel={() => setShowConfirm(false)}
+        />
+      </div>
     
   );
 }
-
-function ComputationCard({ service, used }) {
-  const percent = service.maxInstances ? Math.round((used / service.maxInstances) * 100): 0;
-
-  return (
-    <div className="serviceCard">
-      <h4 className="serviceCardTitle">{service.name}</h4>
-
-      <div className="progress-bar">
-        <div
-          className="progress-bar-fill"
-          style={{ width: `${percent}%` }}
-        ></div>
-      </div>
-
-      <p>{used}/{service.maxInstances} used</p>
-
-      <table className="service-table">
-        <thead>
-          <tr><th>RAM</th><th>Price</th><th>Min Storage</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>{service.ramTier1}GB</td><td>{service.priceTier1}€/month</td><td>{service.minStorageTier1 != null ? `${service.minStorageTier1} TB` : '-'}</td></tr>
-          <tr><td>{service.ramTier2}GB</td><td>{service.priceTier2}€/month</td><td>{service.minStorageTier2 != null ? `${service.minStorageTier2} TB` : '-'}</td></tr>
-          <tr><td>{service.ramTier3}GB</td><td>{service.priceTier3}€/month</td><td>{service.minStorageTier3 != null ? `${service.minStorageTier3} TB` : '-'}</td></tr>
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function StorageCard({ service, used = 0 }) {
-  const percent = service.maxGlobalStorage ? Math.round((used / service.maxGlobalStorage) * 100): 0;
-
-  return (
-    <div className="serviceCard">
-      <h4 className="serviceCardTitle">{service.name}</h4>
-
-      <div className="progress-bar">
-        <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
-      </div>
-
-      <p>{used}/{service.maxGlobalStorage} TB used</p>
-      <p><strong>Min Storage per order:</strong> {service.minStorageTbPerOrder} TB</p>
-      <p><strong>Price:</strong> €{service.price}/TB/month</p>
-    </div>
-  );
-}
-
-function DataTransferCard({ service, used = 0 }) {
-  const percent = service.tier1 ? Math.round((used / service.tier1) * 100) : 0;
-
-  const basePrice = service.base_price;
-  const tier1Price = (service.base_price * service.tier1_multiplier).toFixed(2);
-  const tier2Price = (service.base_price * service.tier2_multiplier).toFixed(2);
-
-  return (
-    <div className="serviceCard">
-      <h4 className="serviceCardTitle">{service.name}</h4>
-
-      <div className="progress-bar">
-        <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
-      </div>
-
-      <p>{used} GB used</p>
-
-      <p><strong>Up to {service.base_tier} GB:</strong> €{basePrice}</p>
-      <p><strong>Up to {service.tier1} GB:</strong> €{tier1Price}/GB</p>
-      <p><strong>Above {service.tier1} GB:</strong> €{tier2Price}/GB</p>
-    </div>
-  );
-}
-
-function CloudStatusLayout({ computationData, storageData, datatransferData, cloudStatus }) {
-  if (!computationData || !storageData || !datatransferData || !cloudStatus) {
-    return <p>Loading cloud services info...</p>;
-  }
-
-  return (
-    <div className="servicesGrid">
-      {computationData.map(service => {
-        const used = Math.min(service.maxInstances, cloudStatus?.usedComputation || 0);
-        return (
-          <ComputationCard 
-            key={`computation-${service.id}`} 
-            service={service} 
-            used={used} 
-          />
-        );
-      })}
-
-      {storageData.map(service => {
-        const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
-        return (
-          <StorageCard
-            key={`storage-${service.id}`}
-            service={service}
-            used={used}
-          />
-        );
-      })}
-
-      {datatransferData.map(service => {
-        const used = cloudStatus?.usedData || 0;
-        return (
-          <DataTransferCard
-            key={`datatransfer-${service.id}`}
-            service={service}
-            used={used}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
 
 
 function GenericLayout(props) {
@@ -430,11 +320,9 @@ function GenericLayout(props) {
 
       <Row className="g-4 mt-4">
         <Col>
-          <CloudStatusLayout
-            computationData={computationData}
-            storageData={storageData}
-            datatransferData={datatransferData}
-            cloudStatus={cloudStatus}
+          <CloudStatusLayout 
+          loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} logout={props.logout}
+          computationData={computationData} storageData={storageData} datatransferData={datatransferData} cloudStatus={cloudStatus}
           />
         </Col>
       </Row>
@@ -444,20 +332,13 @@ function GenericLayout(props) {
           <Col>
             <h3>Orders</h3>
             <NewOrderLayout 
-              loggedIn={props.loggedIn} 
-              user={props.user} 
-              loggedInTotp={props.loggedInTotp} 
-              logout={props.logout} 
+              // loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} logout={props.logout}
+              // computationData={computationData} storageData={storageData} datatransferData={datatransferData} cloudStatus={cloudStatus}
             />
-            <OldOrderLayout
-              loggedIn={props.loggedIn}
-              user={props.user}
-              loggedInTotp={props.loggedInTotp}
-              computationData={computationData}
-              storageData={storageData}
-              datatransferData={datatransferData}
-              onOrderChange={fetchCloudData}
-            />
+            <OldOrderLayout 
+              loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} logout={props.logout}
+              computationData={computationData} storageData={storageData} datatransferData={datatransferData} cloudStatus={cloudStatus}
+            />  
           </Col>
         </Row>
       )}
@@ -466,4 +347,5 @@ function GenericLayout(props) {
 }
 
 
-export { CloudStatusLayout, GenericLayout, NotFoundLayout, LoginLayout, TotpLayout };
+
+export { GenericLayout, NotFoundLayout, LoginLayout, TotpLayout };
