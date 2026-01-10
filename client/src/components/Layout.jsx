@@ -142,9 +142,28 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [minStorage, setMinStorage] = useState(1);
-  const [minData, setMinData] = useState(1); // minimum data transfer
+  const [minData, setMinData] = useState(1);
+  const [totalPrice, setTotalPrice] = useState(0);
 
-  // Update minimum storage based on selected RAM
+  // --- Set default values when data arrives ---
+  useEffect(() => {
+    if (computationData && computationData.length > 0 && !ramGb) {
+      const firstComp = computationData[0];
+      setRamGb(firstComp.ramTier1);
+    }
+
+    if (storageData && storageData.length > 0 && !storageTb) {
+      const firstStorage = storageData[0];
+      setStorageTb(firstStorage.minStorage || 1);
+    }
+
+    if (datatransferData && datatransferData.length > 0 && !dataGb) {
+      const firstData = datatransferData[0];
+      setDataGb(firstData.base_tier || 1);
+    }
+  }, [computationData, storageData, datatransferData]);
+
+  // --- Update minStorage based on selected RAM ---
   useEffect(() => {
     if (!ramGb || !computationData) return;
 
@@ -159,11 +178,35 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
 
     setMinStorage(minStor);
 
-    // Auto-update storageTb if below min
-    if (storageTb && parseInt(storageTb) < minStor) {
-      setStorageTb(minStor);
-    }
+    // Ensure storageTb respects minStorage
+    setStorageTb(prev => {
+      const current = parseInt(prev);
+      if (!prev || current < minStor) return minStor;
+      return prev;
+    });
   }, [ramGb, computationData]);
+
+  // --- Dynamically calculate total price ---
+  useEffect(() => {
+    if (!ramGb || !storageTb || !dataGb || !computationData || !storageData || !datatransferData) {
+      setTotalPrice(0);
+      return;
+    }
+
+    try {
+      const price = computePrice(
+        parseInt(ramGb),
+        parseInt(storageTb),
+        parseInt(dataGb),
+        computationData,
+        storageData,
+        datatransferData
+      ) * parseInt(numMonths);
+      setTotalPrice(price);
+    } catch (err) {
+      setTotalPrice(0);
+    }
+  }, [ramGb, storageTb, dataGb, numMonths, computationData, storageData, datatransferData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -200,6 +243,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
       setStorageTb('');
       setDataGb('');
       setNumMonths(1);
+      setTotalPrice(0);
 
       if (onOrderChange) onOrderChange();
     } catch (err) {
@@ -218,24 +262,29 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
 
       <Form onSubmit={handleSubmit}>
         <Row className="mb-3">
-          {/* RAM Selection */}
+          {/* RAM */}
           <Col md={3}>
             <Form.Group>
               <Form.Label>RAM (GB)</Form.Label>
               <Form.Select value={ramGb} onChange={e => setRamGb(e.target.value)}>
-                <option value="">Select RAM</option>
                 {computationData.map(service => (
-                  <optgroup key={service.id} label={service.name}>
-                    <option value={service.ramTier1}>{service.ramTier1} GB - €{service.priceTier1}/month</option>
-                    <option value={service.ramTier2}>{service.ramTier2} GB - €{service.priceTier2}/month</option>
-                    <option value={service.ramTier3}>{service.ramTier3} GB - €{service.priceTier3}/month</option>
+                  <optgroup key={service.name} label={service.name}>
+                    <option key={`tier1-${service.ramTier1}`} value={service.ramTier1}>
+                      {service.ramTier1} GB - €{service.priceTier1}/month
+                    </option>
+                    <option key={`tier2-${service.ramTier2}`} value={service.ramTier2}>
+                      {service.ramTier2} GB - €{service.priceTier2}/month
+                    </option>
+                    <option key={`tier3-${service.ramTier3}`} value={service.ramTier3}>
+                      {service.ramTier3} GB - €{service.priceTier3}/month
+                    </option>
                   </optgroup>
                 ))}
               </Form.Select>
             </Form.Group>
           </Col>
 
-          {/* Storage Input */}
+          {/* Storage */}
           <Col md={3}>
             <Form.Group>
               <Form.Label>Storage (TB)</Form.Label>
@@ -252,7 +301,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
             </Form.Group>
           </Col>
 
-          {/* Data Transfer Input */}
+          {/* Data Transfer */}
           <Col md={3}>
             <Form.Group>
               <Form.Label>Data Transfer (GB)</Form.Label>
@@ -269,7 +318,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
             </Form.Group>
           </Col>
 
-          {/* Subscription Months */}
+          {/* Months */}
           <Col md={3}>
             <Form.Group>
               <Form.Label>Months</Form.Label>
@@ -283,6 +332,13 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
           </Col>
         </Row>
 
+        {/* Total Price */}
+        <Row className="mb-3">
+          <Col>
+            <h5>Total Price: €{totalPrice.toFixed(2)}</h5>
+          </Col>
+        </Row>
+
         <Button type="submit" disabled={loading}>
           {loading ? 'Submitting...' : 'Create Order'}
         </Button>
@@ -290,6 +346,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
     </div>
   );
 }
+
 
 function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData, onOrderChange }) {
   const [orders, setOrders] = useState([]);
@@ -578,7 +635,7 @@ function GenericLayout(props) {
         </Col>
       </Row>
 
-      <Row className="g-4 mt-4">
+      <Row className="g-4 mt-2">
         <Col>
           <CloudStatusLayout
             computationData={computationData}
@@ -590,9 +647,8 @@ function GenericLayout(props) {
       </Row>
 
       {props.loggedIn && (
-        <Row className="g-4 mt-5">
+        <Row className="g-4 mt-2">
           <Col>
-            <h3>Orders</h3>
             <NewOrderLayout 
               loggedIn={props.loggedIn}
               user={props.user}
