@@ -5,43 +5,6 @@
 const db = require('./db');
 const dayjs = require("dayjs");
 
-// This function retrieves service usage values for 'storage', 'computation', and 'data_transfer'.
-const convertDataFromDbRecord = (dbRecord) => {
-  const status = {};
-  status.serviceId = dbRecord.service_id;
-  status.serviceName = dbRecord.service_name;
-  status.totalValue = dbRecord.total_value;
-  status.usedValue = dbRecord.used_value;
-  return status;
-}
-exports.getServiceUsage = () => {
-    return new Promise((resolve, reject) => {
-    const sql = `
-      SELECT 
-        ser.service_id,
-        ser.name AS service_name,
-        ser.global_value AS total_value,
-        CASE 
-        WHEN ser.name = 'computation' THEN (SELECT COUNT(*) FROM orders)
-            WHEN ser.name = 'storage' THEN (SELECT (SUM(storage_tb)) FROM orders)
-            WHEN ser.name = 'data_transfer' THEN (SELECT (SUM(data_gb)) FROM orders)
-            ELSE ser.global_value
-        END AS used_value
-        FROM services ser
-        WHERE ser.name IN ('storage', 'computation', 'data_transfer');
-      `;
-
-        db.all(sql, [], (err, rows) => {
-            if (err) {
-                reject(err);
-            } else {
-                const data = rows.map(convertDataFromDbRecord);
-                resolve(data);
-            }
-        });
-    });
-};
-
 
 const convertComputationInfoFromDbRecord = (dbRecord) => {
   const computationInfo = {};
@@ -77,8 +40,6 @@ exports.getComputationInfo = () => {
         });
     });
 };
-
-
 
 const convertStorageInfoFromDbRecord = (dbRecord) => {
   const storageInfo = {};

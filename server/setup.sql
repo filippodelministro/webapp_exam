@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS "computation" (
 );
 
 INSERT INTO "computation" VALUES
-(1, 'computation', 6, 16, 32, 128, 10, 20, NULL, 10, 20, 40);
+(1, 'computation', 6, 16, 32, 128, NULL, 10, 20, 10, 20, 40);
 
 --------------------------------------------------
 -- STORAGE SERVICE

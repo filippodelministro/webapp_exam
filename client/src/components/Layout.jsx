@@ -113,16 +113,32 @@ function OldOrderLayout({ loggedIn, loggedInTotp }) {
 }
 
 function ComputationCard({ service, used }) {
-  const percent = service.maxInstances ? Math.round((used / service.maxInstances) * 100) : 0;
+  const percent = service.maxInstances ? Math.round((used / service.maxInstances) * 100): 0;
 
   return (
     <div className="serviceCard">
       <h4 className="serviceCardTitle">{service.name}</h4>
+
       <div className="progress-bar">
-        <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
+        <div
+          className="progress-bar-fill"
+          style={{ width: `${percent}%` }}
+        ></div>
       </div>
+
       <p>{used}/{service.maxInstances} used</p>
-      <p><strong>RAM:</strong> {service.ramTier1}/{service.ramTier2}/{service.ramTier3} GB</p>
+
+      <table className="service-table">
+        <thead>
+          <tr><th>RAM</th><th>Price</th><th>Min Storage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>{service.ramTier1}GB</td><td>{service.priceTier1}€/month</td><td>{service.minStorageTier1 != null ? `${service.minStorageTier1} TB` : '-'}</td></tr>
+          <tr><td>{service.ramTier2}GB</td><td>{service.priceTier2}€/month</td><td>{service.minStorageTier2 != null ? `${service.minStorageTier2} TB` : '-'}</td></tr>
+          <tr><td>{service.ramTier3}GB</td><td>{service.priceTier3}€/month</td><td>{service.minStorageTier3 != null ? `${service.minStorageTier3} TB` : '-'}</td></tr>
+        </tbody>
+      </table>
     </div>
   );
 }

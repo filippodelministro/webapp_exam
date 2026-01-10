@@ -63,7 +63,7 @@
 }
 
 
-/* TABLE LAYOUT */
+/* ---------- ORDER TABLE LAYOUT ---------- */
 
 /* Container styling */
 .orders-container {
@@ -116,4 +116,29 @@
 .error-text {
   color: red;
   font-weight: 500;
+}
+
+/* ---------- CARD TABLE LAYOUT ---------- */
+
+.service-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+  font-size: 0.8rem;      
+}
+
+.service-table th,
+.service-table td {
+  padding: 2px 6px;       
+  text-align: center;
+  line-height: 1.2;      
+}
+
+.service-table th {
+  font-weight: 600;
+  white-space: nowrap;  
+}
+
+.service-table td {
+  white-space: nowrap;
 }
