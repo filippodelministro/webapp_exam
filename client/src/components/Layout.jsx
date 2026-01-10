@@ -133,17 +133,23 @@ function ConfirmDialog({
   );
 }
 
-function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange }) {
-  const [ramGb, setRamGb] = useState('');
-  const [storageTb, setStorageTb] = useState('');
-  const [dataGb, setDataGb] = useState('');
+function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData
+}) {
+  const ramGb = selectedRam;
+  const storageTb = selectedStorage;
+  const dataGb = selectedData;
+  const setRamGb = setSelectedRam;
+  const setStorageTb = setSelectedStorage;
+  const setDataGb = setSelectedData;
+
   const [numMonths, setNumMonths] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [totalPrice, setTotalPrice] = useState(0);
   const [minStorage, setMinStorage] = useState(1);
   const [minData, setMinData] = useState(1);
-  const [totalPrice, setTotalPrice] = useState(0);
+
 
   // --- Set default values when data arrives ---
   useEffect(() => {
@@ -546,7 +552,8 @@ function DataTransferCard({ service, used = 0 }) {
   );
 }
 
-function CloudStatusLayout({ computationData, storageData, datatransferData, cloudStatus }) {
+function CloudStatusLayout({ computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData }) {
+
   if (!computationData || !storageData || !datatransferData || !cloudStatus) {
     return <p>Loading cloud services info...</p>;
   }
@@ -555,33 +562,37 @@ function CloudStatusLayout({ computationData, storageData, datatransferData, clo
     <div className="servicesGrid">
       {computationData.map(service => {
         const used = Math.min(service.maxInstances, cloudStatus?.usedComputation || 0);
+        const ramSelected = parseInt(selectedRam) || 0;
+        const isSelected = ramSelected === service.ramTier1 || ramSelected === service.ramTier2 || ramSelected === service.ramTier3;
         return (
           <ComputationCard 
             key={`computation-${service.id}`} 
             service={service} 
-            used={used} 
+            used={used + (isSelected ? 1 : 0)} // highlight as "reserved" by new order
           />
         );
       })}
 
       {storageData.map(service => {
         const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
+        const storageSelected = parseInt(selectedStorage) || 0;
         return (
           <StorageCard
             key={`storage-${service.id}`}
             service={service}
-            used={used}
+            used={used + storageSelected} // dynamically reflect selected storage
           />
         );
       })}
 
       {datatransferData.map(service => {
         const used = cloudStatus?.usedData || 0;
+        const dataSelected = parseInt(selectedData) || 0;
         return (
           <DataTransferCard
             key={`datatransfer-${service.id}`}
             service={service}
-            used={used}
+            used={used + dataSelected} // dynamically reflect selected data
           />
         );
       })}
@@ -598,6 +609,9 @@ function GenericLayout(props) {
   const [cloudStatus, setCloudStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+const [selectedRam, setSelectedRam] = useState(null);
+const [selectedStorage, setSelectedStorage] = useState(null);
+const [selectedData, setSelectedData] = useState(null);
 
   const fetchCloudData = async () => {
       try {
@@ -637,27 +651,33 @@ function GenericLayout(props) {
 
       <Row className="g-4 mt-2">
         <Col>
-          <CloudStatusLayout
-            computationData={computationData}
-            storageData={storageData}
-            datatransferData={datatransferData}
-            cloudStatus={cloudStatus}
-          />
+<CloudStatusLayout
+  computationData={computationData}
+  storageData={storageData}
+  datatransferData={datatransferData}
+  cloudStatus={cloudStatus}
+  selectedRam={selectedRam}
+  selectedStorage={selectedStorage}
+  selectedData={selectedData}
+/>
         </Col>
       </Row>
 
       {props.loggedIn && (
         <Row className="g-4 mt-2">
           <Col>
-            <NewOrderLayout 
-              loggedIn={props.loggedIn}
-              user={props.user}
-              loggedInTotp={props.loggedInTotp}
-              computationData={computationData}
-              storageData={storageData}
-              datatransferData={datatransferData}
-              onOrderChange={fetchCloudData}
-            />
+<NewOrderLayout
+  computationData={computationData}
+  storageData={storageData}
+  datatransferData={datatransferData}
+  selectedRam={selectedRam}
+  setSelectedRam={setSelectedRam}
+  selectedStorage={selectedStorage}
+  setSelectedStorage={setSelectedStorage}
+  selectedData={selectedData}
+  setSelectedData={setSelectedData}
+  onOrderChange={fetchCloudData}
+/>
             <OldOrderLayout
               loggedIn={props.loggedIn}
               user={props.user}
