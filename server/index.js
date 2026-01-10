@@ -147,11 +147,23 @@ app.get('/api/orders', isLoggedIn, (req, res) => {
     );
 });
 
+app.delete("/api/orders/:orderId", async (req, res) => {
+  const orderId = req.params.orderId;
+
+  try {
+    await cloudDao.deleteOrders(orderId);
+    res.status(204).end(); 
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Database error while deleting order" });
+  }
+});
+
 /*** Users APIs ***/
 
 function clientUserInfo(req) {
   const user=req.user;
-  console.log('DEBUG: clientUserInfo for user '+JSON.stringify(user));
+  // console.log('DEBUG: clientUserInfo for user '+JSON.stringify(user));
 	return {id: user.id, username: user.username, name: user.name, canDoTotp: user.secret? true: false, isTotp: req.session.method === 'totp'};
 }
 

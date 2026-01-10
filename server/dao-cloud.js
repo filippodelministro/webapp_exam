@@ -154,3 +154,21 @@ exports.getOrders = (email) => {
         });
     });
 };
+
+
+exports.deleteOrders = (orderId) => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      delete from orders
+      where order_id = ?
+    `;
+
+    db.run(sql, [orderId], function (err) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(this.changes); // number of rows deleted
+      }
+    });
+  });
+};

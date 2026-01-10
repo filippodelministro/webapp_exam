@@ -1,5 +1,5 @@
 
-import { Row, Col, Button, Spinner, Alert, Toast, Card, ProgressBar } from 'react-bootstrap';
+import { Row, Col, Button, Spinner, Alert, Toast, Card, ProgressBar, Modal } from 'react-bootstrap';
 import { Outlet, Link, useParams, Navigate, useLocation, useNavigate } from 'react-router';
 
 import { Navigation } from './Navigation';
@@ -99,6 +99,39 @@ function computePrice(ramGb, storageTb, dataGb, computationData, storageData, da
   return totalPrice;
 }
 
+function ConfirmDialog({
+  show,
+  title = "Confirm action",
+  message,
+  confirmText = "Confirm",
+  cancelText = "Cancel",
+  variant = "danger",
+  loading = false,
+  onConfirm,
+  onCancel,
+}) {
+  return (
+    <Modal show={show} onHide={onCancel} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>{title}</Modal.Title>
+      </Modal.Header>
+
+      <Modal.Body>
+        {message}
+      </Modal.Body>
+
+      <Modal.Footer>
+        <Button variant="secondary" onClick={onCancel} disabled={loading}>
+          {cancelText}
+        </Button>
+
+        <Button variant={variant} onClick={onConfirm} disabled={loading}>
+          {loading ? <Spinner size="sm" /> : confirmText}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+}
 
 function NewOrderLayout(props) {
     return (
@@ -111,6 +144,9 @@ function NewOrderLayout(props) {
 function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData }) {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
     if (!user?.username) return;
@@ -121,17 +157,25 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storage
   }, [user]);
 
 
-  // const handleCancel = async (orderId) => {
-  //   if (!window.confirm("Are you sure you want to cancel this order?")) return;
+const handleCancelClick = (orderId) => {
+  setOrderToCancel(orderId);
+  setShowConfirm(true);
+};
 
-  //   try {
-  //     await API.cancelOrder(orderId);
-  //     setOrders(prev => prev.filter(o => o.orderId !== orderId));
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("Failed to cancel order.");
-  //   }
-  // };
+  const confirmCancel = async () => {
+    setCancelLoading(true);
+    try {
+      await API.deleteOrder(orderToCancel);
+      setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
+      setShowConfirm(false);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to cancel order.");
+    } finally {
+      setCancelLoading(false);
+      setOrderToCancel(null);
+    }
+  };
 
   if (error) return <p className="orders-error">{error}</p>;
 
@@ -189,7 +233,7 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storage
                     <span title={hoverText}>
                       <button
                         className="btn btn-sm btn-danger"
-                        onClick={() => handleCancel(o.orderId)}
+                        onClick={() => handleCancelClick(o.orderId)}
                         disabled={!loggedInTotp || !cancelAllowed}
                         title={hoverText}
                         >
@@ -203,7 +247,17 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storage
           </tbody>
         </table>
       )}
+        <ConfirmDialog
+        show={showConfirm}
+        title="Cancel order"
+        message="Are you sure you want to cancel this order?"
+        confirmText="Yes, cancel"
+        loading={cancelLoading}
+        onConfirm={confirmCancel}
+        onCancel={() => setShowConfirm(false)}
+      />
     </div>
+    
   );
 }
 

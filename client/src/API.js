@@ -35,8 +35,6 @@ function getJson(httpResponsePromise) {
 
 
 /*** Cloud API calls ***/
-
-
 const getComputationInfo = async () => {
   const data = await getJson(
     fetch(SERVER_URL + 'computation-info', { credentials: 'include' })
@@ -72,6 +70,21 @@ const getOrders = async () => {
   );
 };
 
+const deleteOrder = async (orderId) => {
+  const response = await fetch(
+    SERVER_URL + `orders/${orderId}`,
+    {
+      method: "DELETE",
+      credentials: "include",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Delete failed");
+  }
+
+  // no response.json() here
+};
 /*** Authentication functions ***/
 
 /**
@@ -130,6 +143,6 @@ const logOut = async() => {
   )
 }
 
-const API = { getComputationInfo, getStorageInfo, getDatatransferInfo, getCloudStatus, getOrders,
+const API = { getComputationInfo, getStorageInfo, getDatatransferInfo, getCloudStatus, getOrders, deleteOrder,
               logIn, getUserInfo, logOut, totpVerify };
 export default API;
