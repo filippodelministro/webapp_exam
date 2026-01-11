@@ -99,17 +99,7 @@ function computePrice(ramGb, storageTb, dataGb, computationData, storageData, da
   return totalPrice;
 }
 
-function ConfirmDialog({
-  show,
-  title = "Confirm action",
-  message,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
-  variant = "danger",
-  loading = false,
-  onConfirm,
-  onCancel,
-}) {
+function ConfirmDialog({ show, title, message, confirmText, cancelText, variant, loading, onConfirm, onCancel,}) {
   return (
     <Modal show={show} onHide={onCancel} centered>
       <Modal.Header closeButton>
@@ -133,8 +123,7 @@ function ConfirmDialog({
   );
 }
 
-function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData
-}) {
+function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData}) {
   const ramGb = selectedRam;
   const storageTb = selectedStorage;
   const dataGb = selectedData;
@@ -334,38 +323,43 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storage
   const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
-    if (!user?.username) return;
+    if (!user?.username && loggedIn) return;
 
     API.getOrders()
       .then(setOrders)
       .catch(() => setError('Failed to load orders'));
   }, [user]);
 
-
-const handleCancelClick = (orderId) => {
-  setOrderToCancel(orderId);
-  setShowConfirm(true);
-};
-
-const confirmCancel = async () => {
-  setCancelLoading(true);
-  try {
-    await API.deleteOrder(orderToCancel);
-    setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
-
-    if (onOrderChange) {
-      onOrderChange(); // 🔄 refresh cloud status
+  // just show the confirm box
+  const handleCancelClick = (orderId) => {
+    if(loggedInTotp){
+      setOrderToCancel(orderId);
+      setShowConfirm(true);
     }
+  };
 
-    setShowConfirm(false);
-  } catch (err) {
-    console.error(err);
-    alert("Failed to cancel order.");
-  } finally {
-    setCancelLoading(false);
-    setOrderToCancel(null);
-  }
-};
+  // actually perform the deletion of the order if properly logged in
+  const confirmCancel = async () => {
+    if(loggedInTotp){
+      setCancelLoading(true);
+      try {
+        await API.deleteOrder(orderToCancel);
+        setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
+
+        if (onOrderChange) {
+          onOrderChange(); 
+        }
+
+        setShowConfirm(false);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to cancel order.");
+      } finally {
+        setCancelLoading(false);
+        setOrderToCancel(null);
+      }
+    }
+  };
 
   if (error) return <p className="orders-error">{error}</p>;
 
@@ -418,7 +412,8 @@ const confirmCancel = async () => {
                   <td>{o.ramGb}</td>
                   <td>{o.storageTb}</td>
                   <td>{o.dataGb}</td>
-                  <td>{computePrice(o.ramGb, o.storageTb, o.dataGb, computationData, storageData, datatransferData)} €</td>
+                  {/* <td>{computePrice(o.ramGb, o.storageTb, o.dataGb, computationData, storageData, datatransferData)} €</td> */}
+                  <td>{o.total_price}€</td>
                   <td>
                     <span title={hoverText}>
                       <button
@@ -438,15 +433,17 @@ const confirmCancel = async () => {
         </table>
       )}
         <ConfirmDialog
-        show={showConfirm}
-        title="Cancel order"
-        message="Are you sure you want to cancel this order?"
-        confirmText="Yes, cancel"
-        loading={cancelLoading}
-        onConfirm={confirmCancel}
-        onCancel={() => setShowConfirm(false)}
-      />
-    </div>
+          show={showConfirm}
+          title="Delete order"
+          confirmText="Yes, delete"
+          cancelText="Cancel"
+          variant="danger"
+          message="Are you sure you want to delete this order?"
+          loading={cancelLoading}
+          onConfirm={confirmCancel}
+          onCancel={() => setShowConfirm(false)}
+        />
+      </div>
     
   );
 }

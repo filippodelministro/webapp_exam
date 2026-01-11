@@ -133,13 +133,14 @@ const convertListOrdersFromDbRecord = (dbRecord) => {
   listOrders.ramGb = dbRecord.ram_gb;
   listOrders.storageTb = dbRecord.storage_tb;
   listOrders.dataGb = dbRecord.data_gb;
+  listOrders.total_price = dbRecord.total_price;
 
   return listOrders;
 }
 exports.getOrders = (email) => {
     return new Promise((resolve, reject) => {
         const sql = `
-        select order_id, num_months, timestamp, ram_gb, storage_tb, data_gb
+        select order_id, num_months, timestamp, ram_gb, storage_tb, data_gb, total_price
         from orders o inner join users u on o.user_id = u.user_id
         where u.email = ?
 `;
