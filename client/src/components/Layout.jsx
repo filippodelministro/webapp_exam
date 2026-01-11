@@ -346,8 +346,8 @@ const handleSubmit = async (e) => {
 
   setLoading(true);
   try {
-    const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months, totalPrice: 42 };
-    console.log(newOrder);
+    const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months, totalPrice: totalPrice};
+    // console.log(newOrder);
     await API.createOrder(newOrder);
     setSuccess('Order created successfully!');
     
@@ -366,20 +366,6 @@ const handleSubmit = async (e) => {
     setLoading(false);
   }
 };
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setError(null);
-  //   setSuccess(null);
-
-  //   try {
-  //     await API.createOrder();
-  //     setSuccess('Order created successfully!');
-  //     onOrderChange();
-  //   } catch (err) {
-  //     setError('Failed to create order');
-  //   }
-  // };
 
   return (
     <div className="new-order-form">
@@ -627,11 +613,13 @@ function GenericLayout(props) {
         setDatatransferData(datatransfer);
         setCloudStatus(status[0]);
         
-        //todo: this insert values before logIn => FIX
-        // for NewOrderLayout 
-        setSelectedRam(computation[0]?.ramTier1 ?? "");
-        setSelectedStorage(storage[0]?.minStorageTbPerOrder ?? "");
-        setSelectedData(datatransfer);
+        if(props.loggedIn){
+          // for NewOrderLayout 
+          setSelectedRam(computation[0]?.ramTier1 ?? "");
+          setSelectedStorage(storage[0]?.minStorageTbPerOrder ?? "");
+          setSelectedData(datatransfer);
+        }
+        
       } catch (err) {
         console.error(err);
         setError('Failed to load cloud services info');
@@ -665,27 +653,27 @@ function GenericLayout(props) {
         <Row className="g-4 mt-2">
           <Col>
           <NewOrderLayout
-  computationData={computationData}
-  storageData={storageData}
-  datatransferData={datatransferData}
-  selectedRam={selectedRam}
-  setSelectedRam={setSelectedRam}
-  selectedStorage={selectedStorage}
-  setSelectedStorage={setSelectedStorage}
-  selectedData={selectedData}
-  setSelectedData={setSelectedData}
-  onOrderChange={fetchCloudData}
-/>
+            computationData={computationData}
+            storageData={storageData}
+            datatransferData={datatransferData}
+            selectedRam={selectedRam}
+            setSelectedRam={setSelectedRam}
+            selectedStorage={selectedStorage}
+            setSelectedStorage={setSelectedStorage}
+            selectedData={selectedData}
+            setSelectedData={setSelectedData}
+            onOrderChange={fetchCloudData}
+          />
 
-<OldOrderLayout
-  loggedIn={props.loggedIn}
-  user={props.user}
-  loggedInTotp={props.loggedInTotp}
-  computationData={computationData}
-  storageData={storageData}
-  datatransferData={datatransferData}
-  onOrderChange={fetchCloudData}
-/>
+          <OldOrderLayout
+            loggedIn={props.loggedIn}
+            user={props.user}
+            loggedInTotp={props.loggedInTotp}
+            computationData={computationData}
+            storageData={storageData}
+            datatransferData={datatransferData}
+            onOrderChange={fetchCloudData}
+          />
           </Col>
         </Row>
       )}

@@ -198,6 +198,7 @@ app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
     check('storageTb').isInt({ min: 0.1 }),
     check('dataGb').isInt({ min: 0 }),
     check('numMonths').isInt({ min: 1 }),
+    check('totalPrice').isFloat({ min: 1 }),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -210,7 +211,7 @@ app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
       storageTb: req.body.storageTb,
       dataGb: req.body.dataGb,
       numMonths: req.body.numMonths,
-      total_price: req.body.numMonths,
+      total_price: req.body.totalPrice,
       email: req.user.username,
     };
 
