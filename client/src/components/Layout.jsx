@@ -452,21 +452,23 @@ const result = await API.createOrder(newOrder); // <-- await result from backend
   );
 }
 
-function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData, onOrderChange }) {
-  const [orders, setOrders] = useState([]);
+function OldOrderLayout
+({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData, orders, onOrderChange })
+{
+  // const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
 
-  useEffect(() => {
-    if (!user?.username && loggedIn) return;
+  // useEffect(() => {
+  //   if (!user?.username && loggedIn) return;
 
-    API.getOrders()
-      .then(setOrders)
-      .catch(() => setError('Failed to load orders'));
+  //   API.getOrders()
+  //     .then(setOrders)
+  //     .catch(() => setError('Failed to load orders'));
     
-  }, [user]);
+  // }, [user]);
 
   // const fetchOrders = async () => {
   //   try {
@@ -492,11 +494,9 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storage
       setCancelLoading(true);
       try {
         await API.deleteOrder(orderToCancel);
-        setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
+        // setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
 
-        if (onOrderChange) {
-          onOrderChange(); 
-        }
+        if (onOrderChange) onOrderChange(); 
 
         setShowConfirm(false);
       } catch (err) {
@@ -536,13 +536,14 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storage
               }
 
               // Calculate the cutoff date for cancellation: 1 month before expiring
-              let cancelAllowed = false;
-              if (expiringDate) {
-                const today = new Date();
-                const cutoffDate = new Date(expiringDate.getTime());
-                cutoffDate.setMonth(cutoffDate.getMonth() - 1);
-                cancelAllowed = today < cutoffDate;
-              }
+              // removed due to testing reasons
+              let cancelAllowed = true;
+              // if (expiringDate) {
+              //   const today = new Date();
+              //   const cutoffDate = new Date(expiringDate.getTime());
+              //   cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+              //   cancelAllowed = today < cutoffDate;
+              // }
 
               // Inform the user about the reason why cancel is disabled
               let hoverText = '';
@@ -604,6 +605,8 @@ function GenericLayout(props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [orders, setOrders] = useState([]);
+
   // permit dynamic changes in the client while user changes value in NewOrderLayout
   const [selectedRam, setSelectedRam] = useState(null);
   const [selectedStorage, setSelectedStorage] = useState(null);
@@ -624,11 +627,11 @@ function GenericLayout(props) {
         setDatatransferData(datatransfer);
         setCloudStatus(status[0]);
         
-        if(props.loggedIn){
+        if(props.loggedIn || props.loggedInTotp){
           // for NewOrderLayout 
           setSelectedRam(computation[0]?.ramTier1 ?? "");
           setSelectedStorage(storage[0]?.minStorageTbPerOrder ?? "");
-          setSelectedData(datatransfer);
+          setSelectedData(datatransfer[0]?.base_tier ?? "");
         }
         
       } catch (err) {
@@ -639,8 +642,22 @@ function GenericLayout(props) {
       }
     };
 
+
+  const fetchOrders = async () => {
+    try {
+      const fetched = await API.getOrders();
+      setOrders(fetched);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchCloudData();
+
+    if (props.loggedIn) {
+      fetchOrders();
+    }
   }, []);
 
   if (loading) return <p>Loading cloud services info...</p>;
@@ -673,7 +690,11 @@ function GenericLayout(props) {
             setSelectedStorage={setSelectedStorage}
             selectedData={selectedData}
             setSelectedData={setSelectedData}
-            onOrderChange={fetchCloudData}
+            // onOrderChange={fetchCloudData}
+            onOrderChange={() => {
+              fetchCloudData();
+              fetchOrders();
+            }}
           />
 
           <OldOrderLayout
@@ -683,7 +704,12 @@ function GenericLayout(props) {
             computationData={computationData}
             storageData={storageData}
             datatransferData={datatransferData}
-            onOrderChange={fetchCloudData}
+            // onOrderChange={fetchCloudData}
+            orders={orders}
+            onOrderChange={() => {
+              fetchCloudData();
+              fetchOrders();
+           }}
           />
           </Col>
         </Row>
