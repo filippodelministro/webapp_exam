@@ -82,9 +82,33 @@ const deleteOrder = async (orderId) => {
   if (!response.ok) {
     throw new Error("Delete failed");
   }
-
-  // no response.json() here
 };
+
+/**
+ * This function creates a new order in the back-end.
+ */
+// function createOrder(order) {
+//   return getJson(
+//     fetch(SERVER_URL + "new-orders/", {
+//       method: 'POST',
+//       credentials: 'include',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify(order),
+//     })
+//   );
+// }
+
+function createOrder() {
+  return getJson(
+    fetch(SERVER_URL + 'new-orders/', {
+      method: 'POST',
+      credentials: 'include'
+    })
+  );
+}
+
 /*** Authentication functions ***/
 
 /**
@@ -143,6 +167,6 @@ const logOut = async() => {
   )
 }
 
-const API = { getComputationInfo, getStorageInfo, getDatatransferInfo, getCloudStatus, getOrders, deleteOrder,
+const API = { getComputationInfo, getStorageInfo, getDatatransferInfo, getCloudStatus, getOrders, deleteOrder, createOrder,
               logIn, getUserInfo, logOut, totpVerify };
 export default API;

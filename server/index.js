@@ -159,6 +159,53 @@ app.delete("/api/orders/:orderId", async (req, res) => {
   }
 });
 
+// POST /api/orders
+// This route adds a new order.
+// app.post('/api/new-orders', isLoggedIn,
+//   [
+//     check('ramGb').isInt({ min: 0 }),
+//     check('storageTb').isInt({ min: 0 }),
+//     check('dataGb').isInt({ min: 0 }),
+//     check('numMonths').isInt({ min: 0 }),
+//   ],
+//   async (req, res) => {
+//     const errors = validationResult(req).formatWith(errorFormatter);
+//     if (!errors.isEmpty()) {
+//       return res.status(422).json(errors.errors);
+//     }
+
+//     const order = {
+//       ramGb: req.body.ramGb,
+//       storageTb: req.body.storageTb,
+//       dataGb: req.body.dataGb,
+//       numMonths: req.body.numMonths,
+//       user: req.user.id   // user is taken from the session, NOT from client
+//     };
+
+//     try {
+//       const result = await cloudDao.createOrder(); // returns newly created order
+//       res.json(result);
+//     } catch (err) {
+//       console.log(err);
+//       res.status(503).json({ error: 'Database error' });
+//     }
+//   }
+// );
+
+app.post('/api/new-orders', isLoggedIn, async (req, res) => {
+  const email = req.user.username;
+
+  try {
+    // const result = await cloudDao.createOrder(email);
+    // res.json(result);
+    await cloudDao.createOrder(email);
+    res.status(201).json({ message: 'Order created successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ error: 'Database error' });
+  }
+});
+
 /*** Users APIs ***/
 
 function clientUserInfo(req) {

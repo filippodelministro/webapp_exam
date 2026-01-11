@@ -173,3 +173,83 @@ exports.deleteOrders = (orderId) => {
     });
   });
 };
+
+/**
+ * This function adds a new order in the database.
+ * The order id is added automatically by the DB, and it is returned as this.lastID.
+ */
+// exports.createOrder = () => {
+
+//   return new Promise((resolve, reject) => {
+//     const sql = `
+//       INSERT INTO orders (ramGb, storageTb, dataGb, numMonths, user)
+//       VALUES (16, 1, 1, 1, 1)
+//     `;
+//     db.run(
+//       sql,
+//       [order.ramGb, order.storageTb, order.dataGb, order.numMonths, order.user],
+//       function (err) {
+//         if (err) {
+//           reject(err);
+//         }
+//         // Returning the newly created object with the DB additional properties to the client.
+//         resolve(exports.getOrder(order.user, this.lastID));
+//       }
+//     );
+//   });
+// };
+
+// exports.createOrder = (user) => {
+//   return new Promise((resolve, reject) => {
+//     const getUSer = `
+//       SELECT id FROM users WHERE email = ?
+//     `;
+//     db.get(getUSer, [user], (err, row) => {
+//       if (err) {
+//         reject(err);
+//         return;
+//       }
+//       if (!row) {
+//         reject(new Error('User not found'));
+//         return;
+//       }
+//       const userId = row.id;
+//       const insert = `
+//         INSERT INTO orders (user_id, num_months, ram_gb, storage_tb, data_gb, total_price)
+//         VALUES (?, 16, 1, 1, 1, 42)
+//       `;
+
+//       db.run(insert, [userId], function (err) {
+//         if (err) {
+//           reject(err);
+//           return;
+//         }
+
+//         resolve({success:true});
+//       });
+//     });
+//   });
+// };
+
+exports.createOrder = (user) => {
+  return new Promise((resolve, reject) => {
+    const getUser = `
+      SELECT user_id FROM users WHERE email = ?
+    `;
+
+    db.get(getUser, [user], (err, row) => {
+      if (err) return reject(err);
+      if (!row) return reject(new Error('User not found'));
+
+      const insert = `
+        INSERT INTO orders (user_id, num_months, ram_gb, storage_tb, data_gb, total_price)
+        VALUES (?, 16, 1, 1, 1, 42)
+      `;
+
+      db.run(insert, [row.user_id], function (err) {
+        if (err) return reject(err);
+        resolve({ success: true });
+      });
+    });
+  });
+};
