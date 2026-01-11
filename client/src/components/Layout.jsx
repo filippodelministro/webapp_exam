@@ -537,7 +537,7 @@ function CloudStatusLayout({ computationData, storageData, datatransferData, clo
           <ComputationCard 
             key={`computation-${service.id}`} 
             service={service} 
-            used={used + (isSelected ? 1 : 0)} // highlight as "reserved" by new order
+            used={used + (isSelected ? 1 : 0)}
           />
         );
       })}
@@ -576,6 +576,8 @@ function GenericLayout(props) {
   const [cloudStatus, setCloudStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // permit dynamic changes in the client while user changes value in NewOrderLayout
   const [selectedRam, setSelectedRam] = useState(null);
   const [selectedStorage, setSelectedStorage] = useState(null);
   const [selectedData, setSelectedData] = useState(null);
@@ -589,10 +591,16 @@ function GenericLayout(props) {
           API.getCloudStatus(),
         ]);
 
+        //for CloudStatusLayout
         setComputationData(computation);
         setStorageData(storage);
         setDatatransferData(datatransfer);
         setCloudStatus(status[0]);
+
+        // for NewOrderLayout
+        setSelectedRam(computation[0]?.ramTier1 ?? "");
+        setSelectedStorage(storage[0]?.minStorageTbPerOrder ?? "");
+        setSelectedData(datatransfer);
       } catch (err) {
         console.error(err);
         setError('Failed to load cloud services info');
