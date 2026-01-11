@@ -346,8 +346,9 @@ const handleSubmit = async (e) => {
 
   setLoading(true);
   try {
-    const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months };
-    await API.createOrder(newOrder); // <-- send real data
+    const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months, totalPrice: 42 };
+    console.log(newOrder);
+    await API.createOrder(newOrder);
     setSuccess('Order created successfully!');
     
     // Reset form (optional)

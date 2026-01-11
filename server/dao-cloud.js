@@ -231,25 +231,38 @@ exports.deleteOrders = (orderId) => {
 //   });
 // };
 
-exports.createOrder = (user) => {
+exports.createOrder = (order) => {
   return new Promise((resolve, reject) => {
     const getUser = `
       SELECT user_id FROM users WHERE email = ?
     `;
 
-    db.get(getUser, [user], (err, row) => {
+    db.get(getUser, [order.email], (err, row) => {
       if (err) return reject(err);
       if (!row) return reject(new Error('User not found'));
 
+      const userId = row.user_id;
       const insert = `
         INSERT INTO orders (user_id, num_months, ram_gb, storage_tb, data_gb, total_price)
-        VALUES (?, 16, 1, 1, 1, 42)
+        VALUES (?, ?, ?, ?, ?, ?)
       `;
 
-      db.run(insert, [row.user_id], function (err) {
-        if (err) return reject(err);
-        resolve({ success: true });
-      });
+      db.run(
+        insert,
+        [
+          userId,
+          order.numMonths,
+          order.ramGb,
+          order.storageTb,
+          order.dataGb,
+          order.total_price
+        ],
+        function (err) {
+          if (err) return reject(err);
+
+          resolve({success:true});
+        }
+      );
     });
   });
 };

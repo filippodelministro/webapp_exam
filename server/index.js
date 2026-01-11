@@ -191,20 +191,38 @@ app.delete("/api/orders/:orderId", async (req, res) => {
 //     }
 //   }
 // );
+// POST /api/new-orders
+app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
+  [
+    check('ramGb').isInt({ min: 1 }),
+    check('storageTb').isInt({ min: 0.1 }),
+    check('dataGb').isInt({ min: 0 }),
+    check('numMonths').isInt({ min: 1 }),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
 
-app.post('/api/new-orders', isLoggedIn, async (req, res) => {
-  const email = req.user.username;
+    const order = {
+      ramGb: req.body.ramGb,
+      storageTb: req.body.storageTb,
+      dataGb: req.body.dataGb,
+      numMonths: req.body.numMonths,
+      total_price: req.body.numMonths,
+      email: req.user.username,
+    };
 
-  try {
-    // const result = await cloudDao.createOrder(email);
-    // res.json(result);
-    await cloudDao.createOrder(email);
-    res.status(201).json({ message: 'Order created successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(503).json({ error: 'Database error' });
+    try {
+      const result = await cloudDao.createOrder(order);
+      res.status(201).json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(503).json({ error: 'Database error' });
+    }
   }
-});
+);
 
 /*** Users APIs ***/
 

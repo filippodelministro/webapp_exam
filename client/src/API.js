@@ -100,11 +100,19 @@ const deleteOrder = async (orderId) => {
 //   );
 // }
 
-function createOrder() {
+/**
+ * This function creates a new order in the back-end.
+ */
+function createOrder(order) {
+  console.log(order);
   return getJson(
     fetch(SERVER_URL + 'new-orders/', {
       method: 'POST',
-      credentials: 'include'
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json', // tells the server we're sending JSON
+      },
+      body: JSON.stringify(order) // send the order data
     })
   );
 }
