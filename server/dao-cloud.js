@@ -231,38 +231,73 @@ exports.deleteOrders = (orderId) => {
 //   });
 // };
 
+
 exports.createOrder = (order) => {
   return new Promise((resolve, reject) => {
-    const getUser = `
-      SELECT user_id FROM users WHERE email = ?
-    `;
+    const getUser = `SELECT user_id FROM users WHERE email = ?`;
 
     db.get(getUser, [order.email], (err, row) => {
       if (err) return reject(err);
       if (!row) return reject(new Error('User not found'));
 
       const userId = row.user_id;
-      const insert = `
-        INSERT INTO orders (user_id, num_months, ram_gb, storage_tb, data_gb, total_price)
-        VALUES (?, ?, ?, ?, ?, ?)
+
+      // Check available resources
+      const checkResources = `
+        SELECT 
+          (SELECT max_instances FROM computation) - COUNT(o.order_id) AS availableComp,
+          (SELECT max_gloabl_storage FROM storage) - SUM(o.storage_tb) AS availableStorage
+        FROM orders o
       `;
 
-      db.run(
-        insert,
-        [
-          userId,
-          order.numMonths,
-          order.ramGb,
-          order.storageTb,
-          order.dataGb,
-          order.total_price
-        ],
-        function (err) {
-          if (err) return reject(err);
+      console.log(checkResources);
+      
+      db.get(checkResources, [], (err, resources) => {
+        if (err) return reject(err);
+        
+        const availableComp = resources.availableComp ?? 0;
+        const availableStorage = resources.availableStorage ?? 0;
+        
+        console.log("availableComp:" ,resources.availableComp);
+        console.log("availableStorage" ,resources.availableStorage);
+        // console.log(order.ramGb);
+        console.log("ordered storage:", order.storageTb);
 
-          resolve({success:true});
+        // Check if there are enough resources
+        // for computational instances only one order per time is allowed!
+        if (availableComp <= 1) {
+          console.log("err for Comp");
+          return resolve({ success: false});
         }
-      );
+
+        if (availableStorage < order.storageTb) {
+          console.log("err for Storage");
+          return resolve({ success: false });
+        }
+
+        // Insert the order if resources are sufficient
+        const insert = `
+          INSERT INTO orders (user_id, num_months, ram_gb, storage_tb, data_gb, total_price)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `;
+
+        db.run(
+          insert,
+          [
+            userId,
+            order.numMonths,
+            order.ramGb,
+            order.storageTb,
+            order.dataGb,
+            order.total_price
+          ],
+          function (err) {
+            if (err) return reject(err);
+
+            resolve({ success: true});
+          }
+        );
+      });
     });
   });
 };

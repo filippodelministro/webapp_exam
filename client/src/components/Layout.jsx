@@ -347,10 +347,12 @@ const handleSubmit = async (e) => {
   setLoading(true);
   try {
     const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months, totalPrice: totalPrice};
-    // console.log(newOrder);
-    await API.createOrder(newOrder);
+const result = await API.createOrder(newOrder); // <-- await result from backend
+
+  // Handle different statuses
+  if (result.success) {
     setSuccess('Order created successfully!');
-    
+
     // Reset form (optional)
     setRamGb('');
     setStorageTb(minStorage);
@@ -359,6 +361,15 @@ const handleSubmit = async (e) => {
     setTotalPrice(0);
 
     if (onOrderChange) onOrderChange(); 
+  } 
+  else if (!result.success){
+    setSuccess('Not enough resources for this order!');
+  }
+  else {
+    setError('Failed to create order');
+  }
+
+
   } catch (err) {
     console.error(err);
     setError('Failed to create order');
