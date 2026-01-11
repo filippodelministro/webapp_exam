@@ -59,7 +59,8 @@ function NewOrderLayout(props) {
   );
 }
 
-function ConfirmDialog({ show, title = "Confirm action", message, confirmText = "Confirm", cancelText = "Cancel", variant = "danger", loading = false, onConfirm, onCancel,}) {
+// confirmf Dialog get properties to be showed from the caller
+function ConfirmDialog({ show, title, message, confirmText, cancelText, variant, loading, onConfirm, onCancel,}) {
   return (
     <Modal show={show} onHide={onCancel} centered>
       <Modal.Header closeButton>
@@ -239,7 +240,8 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storage
                   <td>{o.ramGb}</td>
                   <td>{o.storageTb}</td>
                   <td>{o.dataGb}</td>
-                  <td>{computePrice(o.ramGb, o.storageTb, o.dataGb, computationData, storageData, datatransferData)} €</td>
+                  {/* <td>{computePrice(o.ramGb, o.storageTb, o.dataGb, computationData, storageData, datatransferData)} €</td> */}
+                  <td>{o.total_price}€</td>
                   <td>
                     <span title={hoverText}>
                       <button
@@ -260,11 +262,12 @@ function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storage
       )}
         <ConfirmDialog
           show={showConfirm}
-          title="Cancel order"
-          message="Are you sure you want to cancel this order?"
-          confirmText="Yes, cancel"
+          title="Delete order"
+          confirmText="Yes, delete"
+          cancelText="Cancel"
+          variant="danger"
+          message="Are you sure you want to delete this order?"
           loading={cancelLoading}
-          disabled={!loggedInTotp}
           onConfirm={confirmCancel}
           onCancel={() => setShowConfirm(false)}
         />

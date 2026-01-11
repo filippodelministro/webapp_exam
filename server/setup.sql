@@ -87,13 +87,14 @@ CREATE TABLE IF NOT EXISTS "orders" (
     "ram_gb" INTEGER NOT NULL,
     "storage_tb" INTEGER NOT NULL,
     "data_gb" INTEGER NOT NULL,
+    "total_price" REAL NOT NULL,
     FOREIGN KEY ("user_id") REFERENCES "users"("user_id")
 );
 
-INSERT INTO "orders" ("user_id","num_months","ram_gb","storage_tb","data_gb") VALUES
-(1, 1, 32, 10, 10),
-(1, 2, 128, 25, 50),
-(2, 3, 32, 15, 100),
-(2, 1, 128, 20, 100);
+INSERT INTO "orders" ("user_id","num_months","ram_gb","storage_tb","data_gb","total_price") VALUES
+(1, 1, 32, 10, 10, 121),
+(1, 2, 128, 25, 50, 294.20),
+(2, 3, 32, 15, 100, 178.20),
+(2, 1, 128, 20, 100, 248.20);
 
 COMMIT;
