@@ -123,346 +123,6 @@ function ConfirmDialog({ show, title, message, confirmText, cancelText, variant,
   );
 }
 
-function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData}) {
-  const ramGb = selectedRam;
-  const storageTb = selectedStorage;
-  const dataGb = selectedData;
-  const setRamGb = setSelectedRam;
-  const setStorageTb = setSelectedStorage;
-  const setDataGb = setSelectedData;
-
-  const [numMonths, setNumMonths] = useState(1);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [minStorage, setMinStorage] = useState(1);
-  const [minData, setMinData] = useState(1);
-
-
-  // --- Set default values when data arrives ---
-  useEffect(() => {
-    if (computationData && computationData.length > 0 && !ramGb) {
-      const firstComp = computationData[0];
-      setRamGb(firstComp.ramTier1);
-    }
-
-    if (storageData && storageData.length > 0 && !storageTb) {
-      const firstStorage = storageData[0];
-      setStorageTb(firstStorage.minStorage || 1);
-    }
-
-    if (datatransferData && datatransferData.length > 0 && !dataGb) {
-      const firstData = datatransferData[0];
-      setDataGb(firstData.base_tier || 1);
-    }
-  }, [computationData, storageData, datatransferData]);
-
-  // --- Update minStorage based on selected RAM ---
-  useEffect(() => {
-    if (!ramGb || !computationData) return;
-
-    const ramNumber = parseInt(ramGb);
-    let minStor = 1;
-
-    for (const service of computationData) {
-      if (ramNumber === service.ramTier1) minStor = service.minStorageTier1 || 1;
-      else if (ramNumber === service.ramTier2) minStor = service.minStorageTier2 || 1;
-      else if (ramNumber === service.ramTier3) minStor = service.minStorageTier3 || 1;
-    }
-
-    setMinStorage(minStor);
-
-    // Ensure storageTb respects minStorage
-    setStorageTb(prev => {
-      const current = parseInt(prev);
-      if (!prev || current < minStor) return minStor;
-      return prev;
-    });
-  }, [ramGb, computationData]);
-
-  // --- Dynamically calculate total price unsing computePrice function
-  useEffect(() => {
-    if (!ramGb || !storageTb || !dataGb || !computationData || !storageData || !datatransferData) {
-      setTotalPrice(0);
-      return;
-    }
-
-    try {
-      const price = computePrice( parseInt(ramGb), parseInt(storageTb), parseInt(dataGb), computationData, storageData, datatransferData) * parseInt(numMonths);
-      setTotalPrice(price);
-    } catch (err) {
-      setTotalPrice(0);
-    }
-  }, [ramGb, storageTb, dataGb, numMonths, computationData, storageData, datatransferData]);
-
-
-  //todo: understand
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setError(null);
-  //   setSuccess(null);
-
-  //   const ram = parseInt(ramGb);
-  //   const storage = parseInt(storageTb);
-  //   const data = parseInt(dataGb);
-  //   const months = parseInt(numMonths);
-
-  //   // todo: all checks before ....
-  //   if (!ram || !storage || !data || !months) {
-  //     setError('Please fill in all fields');
-  //     return;
-  //   }
-  //   if (storage < minStorage) {
-  //     setError(`Storage must be at least ${minStorage} TB for ${ram} GB RAM`);
-  //     return;
-  //   }
-  //   if (data < minData) {
-  //     setError(`Data Transfer must be at least ${minData} GB`);
-  //     return;
-  //   }
-  //   setLoading(true);
-  //   try {
-  //     const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months };
-  //     await API.createOrder(newOrder);
-
-  //     setSuccess('Order created successfully!');
-  //     setRamGb('');
-  //     setStorageTb('');
-  //     setDataGb('');
-  //     setNumMonths(1);
-  //     setTotalPrice(0);
-
-  //     if (onOrderChange) onOrderChange();
-  //   } catch (err) {
-  //     console.error(err);
-  //     setError('Failed to create order');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    try {
-      await API.createOrder();
-      setSuccess('Order created successfully!');
-    } catch (err) {
-      setError('Failed to create order');
-    }
-  };
-
-  return (
-    <div className="new-order-form">
-      <h4>Create New Order</h4>
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
-
-      <Form onSubmit={handleSubmit}>
-        <Row className="mb-3">
-          {/* RAM */}
-          <Col md={3}>
-            <Form.Group>
-              <Form.Label>RAM (GB)</Form.Label>
-              <Form.Select value={ramGb} onChange={e => setRamGb(e.target.value)}>
-                {computationData.map(service => (
-                  <optgroup key={service.name} label={service.name}>
-                    <option key={`tier1-${service.ramTier1}`} value={service.ramTier1}>
-                      {service.ramTier1} GB - €{service.priceTier1}/month
-                    </option>
-                    <option key={`tier2-${service.ramTier2}`} value={service.ramTier2}>
-                      {service.ramTier2} GB - €{service.priceTier2}/month
-                    </option>
-                    <option key={`tier3-${service.ramTier3}`} value={service.ramTier3}>
-                      {service.ramTier3} GB - €{service.priceTier3}/month
-                    </option>
-                  </optgroup>
-                ))}
-              </Form.Select>
-              <Form.Text className="text-muted">Select one of the RAM size</Form.Text>
-            </Form.Group>
-          </Col>
-
-          {/* Storage */}
-          <Col md={3}>
-            <Form.Group>
-              <Form.Label>Storage (TB)</Form.Label>
-              <Form.Control type="number" min={minStorage} value={storageTb} onChange={e => setStorageTb(e.target.value)} placeholder={`Min ${minStorage} TB`}/>
-              <Form.Text className="text-muted">Minimum storage required: {minStorage} TB</Form.Text>
-            </Form.Group>
-          </Col>
-
-          {/* Data Transfer */}
-          <Col md={3}>
-            <Form.Group>
-              <Form.Label>Data Transfer (GB)</Form.Label>
-              <Form.Control type="number" min={minData} value={dataGb} onChange={e => setDataGb(e.target.value)} placeholder={`Min ${minData} GB`}/>
-              <Form.Text className="text-muted">Amount of data transfer in GB</Form.Text>
-            </Form.Group>
-          </Col>
-
-          {/* Months */}
-          <Col md={3}>
-            <Form.Group>
-              <Form.Label>Months</Form.Label>
-              <Form.Control type="number" min={1} value={numMonths} onChange={e => setNumMonths(e.target.value)}/>
-              <Form.Text className="text-muted">Amount of months</Form.Text>
-            </Form.Group>
-          </Col>
-        </Row>
-
-        {/* Total Price */}
-        <Row className="mb-3">
-          <Col>
-            <h5>Total Price: €{totalPrice.toFixed(2)}</h5>
-          </Col>
-        </Row>
-
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Submitting...' : 'Create Order'}
-        </Button>
-      </Form>
-    </div>
-  );
-}
-
-
-function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData, onOrderChange }) {
-  const [orders, setOrders] = useState([]);
-  const [error, setError] = useState(null);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [orderToCancel, setOrderToCancel] = useState(null);
-  const [cancelLoading, setCancelLoading] = useState(false);
-
-  useEffect(() => {
-    if (!user?.username && loggedIn) return;
-
-    API.getOrders()
-      .then(setOrders)
-      .catch(() => setError('Failed to load orders'));
-  }, [user]);
-
-  // just show the confirm box
-  const handleCancelClick = (orderId) => {
-    if(loggedInTotp){
-      setOrderToCancel(orderId);
-      setShowConfirm(true);
-    }
-  };
-
-  // actually perform the deletion of the order if properly logged in
-  const confirmCancel = async () => {
-    if(loggedInTotp){
-      setCancelLoading(true);
-      try {
-        await API.deleteOrder(orderToCancel);
-        setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
-
-        if (onOrderChange) {
-          onOrderChange(); 
-        }
-
-        setShowConfirm(false);
-      } catch (err) {
-        console.error(err);
-        alert("Failed to cancel order.");
-      } finally {
-        setCancelLoading(false);
-        setOrderToCancel(null);
-      }
-    }
-  };
-
-  if (error) return <p className="orders-error">{error}</p>;
-
-  return (
-    <div className="orders-container">
-      <h2 className="orders-title">Old Orders</h2>
-
-      {orders.length === 0 ? (
-        <p className="orders-empty">No previous orders</p>
-      ) : (
-        <table className="orders-table">
-          <thead>
-            <tr>
-              <th>Order ID</th><th>Subscribed</th><th>Expiring</th><th>RAM (GB)</th><th>Storage (TB)</th><th>Data (GB)</th><th>Tot Price (€)</th><th>Actions</th>
-            </tr>
-          </thead>
-         <tbody>
-            {orders.map((o, index) => {
-              const subscribedDate = o.timestamp ? new Date(o.timestamp) : null;
-              let expiringDate = null;
-
-              // set the expiring date based on subscribed date and numMonths
-              if (subscribedDate && o.numMonths) {
-                expiringDate = new Date(subscribedDate.getTime());
-                expiringDate.setMonth(expiringDate.getMonth() + o.numMonths);
-              }
-
-              // Calculate the cutoff date for cancellation: 1 month before expiring
-              let cancelAllowed = false;
-              if (expiringDate) {
-                const today = new Date();
-                const cutoffDate = new Date(expiringDate.getTime());
-                cutoffDate.setMonth(cutoffDate.getMonth() - 1);
-                cancelAllowed = today < cutoffDate;
-              }
-
-              // Inform the user about the reason why cancel is disabled
-              let hoverText = '';
-              if (!loggedInTotp) {
-                hoverText = "Enable 2FA to cancel orders";
-              } else if (!cancelAllowed) {
-                hoverText = "Cannot cancel in the last month of subscription";
-              }
-
-              return (
-                <tr key={o.orderId ?? index}>
-                  <td>{o.orderId}</td>
-                  <td>{subscribedDate ? subscribedDate.toLocaleDateString() : '–'}</td>
-                  <td>{expiringDate ? expiringDate.toLocaleDateString() : '–'}</td>
-                  <td>{o.ramGb}</td>
-                  <td>{o.storageTb}</td>
-                  <td>{o.dataGb}</td>
-                  {/* <td>{computePrice(o.ramGb, o.storageTb, o.dataGb, computationData, storageData, datatransferData)} €</td> */}
-                  <td>{o.total_price}€</td>
-                  <td>
-                    <span title={hoverText}>
-                      <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => handleCancelClick(o.orderId)}
-                        disabled={!loggedInTotp || !cancelAllowed}
-                        title={hoverText}
-                        >
-                        <i className='bi bi-trash'></i>
-                      </button>
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-        <ConfirmDialog
-          show={showConfirm}
-          title="Delete order"
-          confirmText="Yes, delete"
-          cancelText="Cancel"
-          variant="danger"
-          message="Are you sure you want to delete this order?"
-          loading={cancelLoading}
-          onConfirm={confirmCancel}
-          onCancel={() => setShowConfirm(false)}
-        />
-      </div>
-    
-  );
-}
-
 function ComputationCard({ service, used }) {
   const percent = service.maxInstances ? Math.round((used / service.maxInstances) * 100): 0;
 
@@ -584,6 +244,360 @@ function CloudStatusLayout({ computationData, storageData, datatransferData, clo
   );
 }
 
+function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData}) {
+  const ramGb = selectedRam;
+  const storageTb = selectedStorage;
+  const dataGb = selectedData;
+  const setRamGb = setSelectedRam;
+  const setStorageTb = setSelectedStorage;
+  const setDataGb = setSelectedData;
+
+  const [numMonths, setNumMonths] = useState(1);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [minStorage, setMinStorage] = useState(1);
+  const [minData, setMinData] = useState(1);
+
+
+  // --- Set default values when data arrives ---
+  useEffect(() => {
+    if (computationData && computationData.length > 0 && !ramGb) {
+      const firstComp = computationData[0];
+      setRamGb(firstComp.ramTier1);
+    }
+
+    if (storageData && storageData.length > 0 && !storageTb) {
+      const firstStorage = storageData[0];
+      setStorageTb(firstStorage.minStorage || 1);
+    }
+
+    if (datatransferData && datatransferData.length > 0 && !dataGb) {
+      const firstData = datatransferData[0];
+      setDataGb(firstData.base_tier || 1);
+    }
+  }, [computationData, storageData, datatransferData]);
+
+  // --- Update minStorage based on selected RAM ---
+  useEffect(() => {
+    if (!ramGb || !computationData) return;
+
+    const ramNumber = parseInt(ramGb);
+    let minStor = 1;
+
+    for (const service of computationData) {
+      if (ramNumber === service.ramTier1) minStor = service.minStorageTier1 || 1;
+      else if (ramNumber === service.ramTier2) minStor = service.minStorageTier2 || 1;
+      else if (ramNumber === service.ramTier3) minStor = service.minStorageTier3 || 1;
+    }
+
+    setMinStorage(minStor);
+
+    // Ensure storageTb respects minStorage
+    setStorageTb(prev => {
+      const current = parseInt(prev);
+      if (!prev || current < minStor) return minStor;
+      return prev;
+    });
+  }, [ramGb, computationData]);
+
+  // --- Dynamically calculate total price unsing computePrice function
+  useEffect(() => {
+    if (!ramGb || !storageTb || !dataGb || !computationData || !storageData || !datatransferData) {
+      setTotalPrice(0);
+      return;
+    }
+
+    try {
+      const price = computePrice( parseInt(ramGb), parseInt(storageTb), parseInt(dataGb), computationData, storageData, datatransferData) * parseInt(numMonths);
+      setTotalPrice(price);
+    } catch (err) {
+      setTotalPrice(0);
+    }
+  }, [ramGb, storageTb, dataGb, numMonths, computationData, storageData, datatransferData]);
+
+
+  //todo: understand
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError(null);
+  setSuccess(null);
+
+  const ram = parseInt(ramGb);
+  const storage = parseInt(storageTb);
+  const data = parseInt(dataGb);
+  const months = parseInt(numMonths);
+
+  if (!ram || !storage || !data || !months) {
+    setError('Please fill in all fields');
+    return;
+  }
+
+  if (storage < minStorage) {
+    setError(`Storage must be at least ${minStorage} TB for ${ram} GB RAM`);
+    return;
+  }
+
+  if (data < minData) {
+    setError(`Data Transfer must be at least ${minData} GB`);
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months };
+    await API.createOrder(newOrder); // <-- send real data
+    setSuccess('Order created successfully!');
+    
+    // Reset form (optional)
+    setRamGb('');
+    setStorageTb(minStorage);
+    setDataGb(minData);
+    setNumMonths(1);
+    setTotalPrice(0);
+
+    if (onOrderChange) onOrderChange(); 
+  } catch (err) {
+    console.error(err);
+    setError('Failed to create order');
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError(null);
+  //   setSuccess(null);
+
+  //   try {
+  //     await API.createOrder();
+  //     setSuccess('Order created successfully!');
+  //     onOrderChange();
+  //   } catch (err) {
+  //     setError('Failed to create order');
+  //   }
+  // };
+
+  return (
+    <div className="new-order-form">
+      <h4>Create New Order</h4>
+      {error && <Alert variant="danger">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>}
+
+      <Form onSubmit={handleSubmit}>
+        <Row className="mb-3">
+          {/* RAM */}
+          <Col md={3}>
+            <Form.Group>
+              <Form.Label>RAM (GB)</Form.Label>
+              <Form.Select value={ramGb} onChange={e => setRamGb(e.target.value)}>
+                {computationData.map(service => (
+                  <optgroup key={service.name} label={service.name}>
+                    <option key={`tier1-${service.ramTier1}`} value={service.ramTier1}>
+                      {service.ramTier1} GB - €{service.priceTier1}/month
+                    </option>
+                    <option key={`tier2-${service.ramTier2}`} value={service.ramTier2}>
+                      {service.ramTier2} GB - €{service.priceTier2}/month
+                    </option>
+                    <option key={`tier3-${service.ramTier3}`} value={service.ramTier3}>
+                      {service.ramTier3} GB - €{service.priceTier3}/month
+                    </option>
+                  </optgroup>
+                ))}
+              </Form.Select>
+              <Form.Text className="text-muted">Select one of the RAM size</Form.Text>
+            </Form.Group>
+          </Col>
+
+          {/* Storage */}
+          <Col md={3}>
+            <Form.Group>
+              <Form.Label>Storage (TB)</Form.Label>
+              <Form.Control type="number" min={minStorage} value={storageTb} onChange={e => setStorageTb(e.target.value)} placeholder={`Min ${minStorage} TB`}/>
+              <Form.Text className="text-muted">Minimum storage required: {minStorage} TB</Form.Text>
+            </Form.Group>
+          </Col>
+
+          {/* Data Transfer */}
+          <Col md={3}>
+            <Form.Group>
+              <Form.Label>Data Transfer (GB)</Form.Label>
+              <Form.Control type="number" min={minData} value={dataGb} onChange={e => setDataGb(e.target.value)} placeholder={`Min ${minData} GB`}/>
+              <Form.Text className="text-muted">Amount of data transfer in GB</Form.Text>
+            </Form.Group>
+          </Col>
+
+          {/* Months */}
+          <Col md={3}>
+            <Form.Group>
+              <Form.Label>Months</Form.Label>
+              <Form.Control type="number" min={1} value={numMonths} onChange={e => setNumMonths(e.target.value)}/>
+              <Form.Text className="text-muted">Amount of months</Form.Text>
+            </Form.Group>
+          </Col>
+        </Row>
+
+        {/* Total Price */}
+        <Row className="mb-3">
+          <Col>
+            <h5>Total Price: €{totalPrice.toFixed(2)}</h5>
+          </Col>
+        </Row>
+
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Submitting...' : 'Create Order'}
+        </Button>
+      </Form>
+    </div>
+  );
+}
+
+function OldOrderLayout({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData, onOrderChange }) {
+  const [orders, setOrders] = useState([]);
+  const [error, setError] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user?.username && loggedIn) return;
+
+    API.getOrders()
+      .then(setOrders)
+      .catch(() => setError('Failed to load orders'));
+    
+  }, [user]);
+
+  // const fetchOrders = async () => {
+  //   try {
+  //     const fetchedOrders = await API.getOrders();
+  //     setOrders(fetchedOrders);
+  //   } catch (err) {
+  //     setError('Failed to load orders');
+  //   }
+  // };
+
+
+  // just show the confirm box
+  const handleCancelClick = (orderId) => {
+    if(loggedInTotp){
+      setOrderToCancel(orderId);
+      setShowConfirm(true);
+    }
+  };
+
+  // actually perform the deletion of the order if properly logged in
+  const confirmCancel = async () => {
+    if(loggedInTotp){
+      setCancelLoading(true);
+      try {
+        await API.deleteOrder(orderToCancel);
+        setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
+
+        if (onOrderChange) {
+          onOrderChange(); 
+        }
+
+        setShowConfirm(false);
+      } catch (err) {
+        console.error(err);
+        alert("Failed to cancel order.");
+      } finally {
+        setCancelLoading(false);
+        setOrderToCancel(null);
+      }
+    }
+  };
+
+  if (error) return <p className="orders-error">{error}</p>;
+
+  return (
+    <div className="orders-container">
+      <h2 className="orders-title">Old Orders</h2>
+
+      {orders.length === 0 ? (
+        <p className="orders-empty">No previous orders</p>
+      ) : (
+        <table className="orders-table">
+          <thead>
+            <tr>
+              <th>Order ID</th><th>Subscribed</th><th>Expiring</th><th>RAM (GB)</th><th>Storage (TB)</th><th>Data (GB)</th><th>Tot Price (€)</th><th>Actions</th>
+            </tr>
+          </thead>
+         <tbody>
+            {orders.map((o, index) => {
+              const subscribedDate = o.timestamp ? new Date(o.timestamp) : null;
+              let expiringDate = null;
+
+              // set the expiring date based on subscribed date and numMonths
+              if (subscribedDate && o.numMonths) {
+                expiringDate = new Date(subscribedDate.getTime());
+                expiringDate.setMonth(expiringDate.getMonth() + o.numMonths);
+              }
+
+              // Calculate the cutoff date for cancellation: 1 month before expiring
+              let cancelAllowed = false;
+              if (expiringDate) {
+                const today = new Date();
+                const cutoffDate = new Date(expiringDate.getTime());
+                cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+                cancelAllowed = today < cutoffDate;
+              }
+
+              // Inform the user about the reason why cancel is disabled
+              let hoverText = '';
+              if (!loggedInTotp) {
+                hoverText = "Enable 2FA to cancel orders";
+              } else if (!cancelAllowed) {
+                hoverText = "Cannot cancel in the last month of subscription";
+              }
+
+              return (
+                <tr key={o.orderId ?? index}>
+                  <td>{o.orderId}</td>
+                  <td>{subscribedDate ? subscribedDate.toLocaleDateString() : '–'}</td>
+                  <td>{expiringDate ? expiringDate.toLocaleDateString() : '–'}</td>
+                  <td>{o.ramGb}</td>
+                  <td>{o.storageTb}</td>
+                  <td>{o.dataGb}</td>
+                  {/* <td>{computePrice(o.ramGb, o.storageTb, o.dataGb, computationData, storageData, datatransferData)} €</td> */}
+                  <td>{o.total_price}€</td>
+                  <td>
+                    <span title={hoverText}>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleCancelClick(o.orderId)}
+                        disabled={!loggedInTotp || !cancelAllowed}
+                        title={hoverText}
+                        >
+                        <i className='bi bi-trash'></i>
+                      </button>
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+        <ConfirmDialog
+          show={showConfirm}
+          title="Delete order"
+          confirmText="Yes, delete"
+          cancelText="Cancel"
+          variant="danger"
+          message="Are you sure you want to delete this order?"
+          loading={cancelLoading}
+          onConfirm={confirmCancel}
+          onCancel={() => setShowConfirm(false)}
+        />
+      </div>
+    
+  );
+}
+
 function GenericLayout(props) {
   const [computationData, setComputationData] = useState([]);
   const [storageData, setStorageData] = useState([]);
@@ -649,8 +663,28 @@ function GenericLayout(props) {
       {props.loggedIn && (
         <Row className="g-4 mt-2">
           <Col>
-            <NewOrderLayout computationData={computationData} storageData={storageData} datatransferData={datatransferData} selectedRam={selectedRam} setSelectedRam={setSelectedRam} selectedStorage={selectedStorage} setSelectedStorage={setSelectedStorage} selectedData={selectedData} setSelectedData={setSelectedData} onOrderChange={fetchCloudData}/>
-            <OldOrderLayout loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} computationData={computationData} storageData={storageData} datatransferData={datatransferData} onOrderChange={fetchCloudData}/>
+          <NewOrderLayout
+  computationData={computationData}
+  storageData={storageData}
+  datatransferData={datatransferData}
+  selectedRam={selectedRam}
+  setSelectedRam={setSelectedRam}
+  selectedStorage={selectedStorage}
+  setSelectedStorage={setSelectedStorage}
+  selectedData={selectedData}
+  setSelectedData={setSelectedData}
+  onOrderChange={fetchCloudData}
+/>
+
+<OldOrderLayout
+  loggedIn={props.loggedIn}
+  user={props.user}
+  loggedInTotp={props.loggedInTotp}
+  computationData={computationData}
+  storageData={storageData}
+  datatransferData={datatransferData}
+  onOrderChange={fetchCloudData}
+/>
           </Col>
         </Row>
       )}
