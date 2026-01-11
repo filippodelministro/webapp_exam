@@ -652,6 +652,7 @@ function GenericLayout(props) {
     }
   };
 
+  // update the cloudStatus and orders if user is logged in
   useEffect(() => {
     fetchCloudData();
 
@@ -659,6 +660,16 @@ function GenericLayout(props) {
       fetchOrders();
     }
   }, []);
+
+  // reset selected values once the user logout
+  useEffect(() => {
+  if (!props.loggedIn && !props.loggedInTotp) {
+    setSelectedRam(null);
+    setSelectedStorage(null);
+    setSelectedData(null);
+  }
+}, [props.loggedIn, props.loggedInTotp]);
+
 
   if (loading) return <p>Loading cloud services info...</p>;
   if (error) return <p>{error}</p>;
