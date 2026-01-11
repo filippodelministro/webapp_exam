@@ -140,10 +140,10 @@ const convertListOrdersFromDbRecord = (dbRecord) => {
 exports.getOrders = (email) => {
     return new Promise((resolve, reject) => {
         const sql = `
-        select order_id, num_months, timestamp, ram_gb, storage_tb, data_gb, total_price
-        from orders o inner join users u on o.user_id = u.user_id
-        where u.email = ?
-`;
+          select order_id, num_months, timestamp, ram_gb, storage_tb, data_gb, total_price
+          from orders o inner join users u on o.user_id = u.user_id
+          where u.email = ?
+        `;
 
         db.all(sql, [email], (err, rows) => {
             if (err) {
@@ -174,64 +174,6 @@ exports.deleteOrders = (orderId) => {
   });
 };
 
-/**
- * This function adds a new order in the database.
- * The order id is added automatically by the DB, and it is returned as this.lastID.
- */
-// exports.createOrder = () => {
-
-//   return new Promise((resolve, reject) => {
-//     const sql = `
-//       INSERT INTO orders (ramGb, storageTb, dataGb, numMonths, user)
-//       VALUES (16, 1, 1, 1, 1)
-//     `;
-//     db.run(
-//       sql,
-//       [order.ramGb, order.storageTb, order.dataGb, order.numMonths, order.user],
-//       function (err) {
-//         if (err) {
-//           reject(err);
-//         }
-//         // Returning the newly created object with the DB additional properties to the client.
-//         resolve(exports.getOrder(order.user, this.lastID));
-//       }
-//     );
-//   });
-// };
-
-// exports.createOrder = (user) => {
-//   return new Promise((resolve, reject) => {
-//     const getUSer = `
-//       SELECT id FROM users WHERE email = ?
-//     `;
-//     db.get(getUSer, [user], (err, row) => {
-//       if (err) {
-//         reject(err);
-//         return;
-//       }
-//       if (!row) {
-//         reject(new Error('User not found'));
-//         return;
-//       }
-//       const userId = row.id;
-//       const insert = `
-//         INSERT INTO orders (user_id, num_months, ram_gb, storage_tb, data_gb, total_price)
-//         VALUES (?, 16, 1, 1, 1, 42)
-//       `;
-
-//       db.run(insert, [userId], function (err) {
-//         if (err) {
-//           reject(err);
-//           return;
-//         }
-
-//         resolve({success:true});
-//       });
-//     });
-//   });
-// };
-
-
 exports.createOrder = (order) => {
   return new Promise((resolve, reject) => {
     const getUser = `SELECT user_id FROM users WHERE email = ?`;
@@ -250,19 +192,12 @@ exports.createOrder = (order) => {
         FROM orders o
       `;
 
-      console.log(checkResources);
-      
       db.get(checkResources, [], (err, resources) => {
         if (err) return reject(err);
         
         const availableComp = resources.availableComp ?? 0;
         const availableStorage = resources.availableStorage ?? 0;
         
-        console.log("availableComp:" ,resources.availableComp);
-        console.log("availableStorage" ,resources.availableStorage);
-        // console.log(order.ramGb);
-        console.log("ordered storage:", order.storageTb);
-
         // Check if there are enough resources
         // for computational instances only one order per time is allowed!
         if (availableComp <= 1) {
@@ -282,15 +217,7 @@ exports.createOrder = (order) => {
         `;
 
         db.run(
-          insert,
-          [
-            userId,
-            order.numMonths,
-            order.ramGb,
-            order.storageTb,
-            order.dataGb,
-            order.total_price
-          ],
+          insert, [userId, order.numMonths, order.ramGb, order.storageTb, order.dataGb, order.total_price],
           function (err) {
             if (err) return reject(err);
 

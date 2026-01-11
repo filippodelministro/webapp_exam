@@ -209,11 +209,7 @@ function CloudStatusLayout({ computationData, storageData, datatransferData, clo
         const ramSelected = parseInt(selectedRam) || 0;
         const isSelected = ramSelected === service.ramTier1 || ramSelected === service.ramTier2 || ramSelected === service.ramTier3;
         return (
-          <ComputationCard 
-            key={`computation-${service.id}`} 
-            service={service} 
-            used={used + (isSelected ? 1 : 0)}
-          />
+          <ComputationCard key={`computation-${service.id}`} service={service} used={used + (isSelected ? 1 : 0)}/>
         );
       })}
 
@@ -221,11 +217,7 @@ function CloudStatusLayout({ computationData, storageData, datatransferData, clo
         const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
         const storageSelected = parseInt(selectedStorage) || 0;
         return (
-          <StorageCard
-            key={`storage-${service.id}`}
-            service={service}
-            used={used + storageSelected} // dynamically reflect selected storage
-          />
+          <StorageCard key={`storage-${service.id}`} service={service} used={used + storageSelected}/>
         );
       })}
 
@@ -233,11 +225,7 @@ function CloudStatusLayout({ computationData, storageData, datatransferData, clo
         const used = cloudStatus?.usedData || 0;
         const dataSelected = parseInt(selectedData) || 0;
         return (
-          <DataTransferCard
-            key={`datatransfer-${service.id}`}
-            service={service}
-            used={used + dataSelected} // dynamically reflect selected data
-          />
+          <DataTransferCard key={`datatransfer-${service.id}`} service={service} used={used + dataSelected}/>
         );
       })}
     </div>
@@ -318,65 +306,62 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
   }, [ramGb, storageTb, dataGb, numMonths, computationData, storageData, datatransferData]);
 
 
-  //todo: understand
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError(null);
-  setSuccess(null);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
 
-  const ram = parseInt(ramGb);
-  const storage = parseInt(storageTb);
-  const data = parseInt(dataGb);
-  const months = parseInt(numMonths);
+    const ram = parseInt(ramGb);
+    const storage = parseInt(storageTb);
+    const data = parseInt(dataGb);
+    const months = parseInt(numMonths);
 
-  if (!ram || !storage || !data || !months) {
-    setError('Please fill in all fields');
-    return;
-  }
+    if (!ram || !storage || !data || !months) {
+      setError('Please fill in all fields');
+      return;
+    }
 
-  if (storage < minStorage) {
-    setError(`Storage must be at least ${minStorage} TB for ${ram} GB RAM`);
-    return;
-  }
+    if (storage < minStorage) {
+      setError(`Storage must be at least ${minStorage} TB for ${ram} GB RAM`);
+      return;
+    }
 
-  if (data < minData) {
-    setError(`Data Transfer must be at least ${minData} GB`);
-    return;
-  }
+    if (data < minData) {
+      setError(`Data Transfer must be at least ${minData} GB`);
+      return;
+    }
 
-  setLoading(true);
-  try {
-    const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months, totalPrice: totalPrice};
-const result = await API.createOrder(newOrder); // <-- await result from backend
+    setLoading(true);
+    try {
+      const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months, totalPrice: totalPrice};
+      const result = await API.createOrder(newOrder); // <-- await result from backend
 
-  // Handle different statuses
-  if (result.success) {
-    setSuccess('Order created successfully!');
+      // Handle different statuses
+      if (result.success) {
+        setSuccess('Order created successfully!');
 
-    // Reset form (optional)
-    setRamGb('');
-    setStorageTb(minStorage);
-    setDataGb(minData);
-    setNumMonths(1);
-    setTotalPrice(0);
+        // Reset form (optional)
+        setRamGb('');
+        setStorageTb(minStorage);
+        setDataGb(minData);
+        setNumMonths(1);
+        setTotalPrice(0);
 
-    if (onOrderChange) onOrderChange(); 
-  } 
-  else if (!result.success){
-    setSuccess('Not enough resources for this order!');
-  }
-  else {
-    setError('Failed to create order');
-  }
-
-
-  } catch (err) {
-    console.error(err);
-    setError('Failed to create order');
-  } finally {
-    setLoading(false);
-  }
-};
+        if (onOrderChange) onOrderChange(); 
+      } 
+      else if (!result.success){
+        setSuccess('Not enough resources for this order!');
+      }
+      else {
+        setError('Failed to create order');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to create order');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="new-order-form">
@@ -452,33 +437,15 @@ const result = await API.createOrder(newOrder); // <-- await result from backend
   );
 }
 
-function OldOrderLayout
-({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData, orders, onOrderChange })
-{
+// function OldOrderLayout
+// ({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData, orders, onOrderChange })
+// {
+function OldOrderLayout ({ loggedInTotp, orders, onOrderChange }){
   // const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
-
-  // useEffect(() => {
-  //   if (!user?.username && loggedIn) return;
-
-  //   API.getOrders()
-  //     .then(setOrders)
-  //     .catch(() => setError('Failed to load orders'));
-    
-  // }, [user]);
-
-  // const fetchOrders = async () => {
-  //   try {
-  //     const fetchedOrders = await API.getOrders();
-  //     setOrders(fetchedOrders);
-  //   } catch (err) {
-  //     setError('Failed to load orders');
-  //   }
-  // };
-
 
   // just show the confirm box
   const handleCancelClick = (orderId) => {
@@ -494,10 +461,7 @@ function OldOrderLayout
       setCancelLoading(true);
       try {
         await API.deleteOrder(orderToCancel);
-        // setOrders(prev => prev.filter(o => o.orderId !== orderToCancel));
-
         if (onOrderChange) onOrderChange(); 
-
         setShowConfirm(false);
       } catch (err) {
         console.error(err);
@@ -561,7 +525,6 @@ function OldOrderLayout
                   <td>{o.ramGb}</td>
                   <td>{o.storageTb}</td>
                   <td>{o.dataGb}</td>
-                  {/* <td>{computePrice(o.ramGb, o.storageTb, o.dataGb, computationData, storageData, datatransferData)} €</td> */}
                   <td>{o.total_price}€</td>
                   <td>
                     <span title={hoverText}>
@@ -581,17 +544,16 @@ function OldOrderLayout
           </tbody>
         </table>
       )}
-        <ConfirmDialog
-          show={showConfirm}
-          title="Delete order"
-          confirmText="Yes, delete"
-          cancelText="Cancel"
-          variant="danger"
-          message="Are you sure you want to delete this order?"
-          loading={cancelLoading}
-          onConfirm={confirmCancel}
-          onCancel={() => setShowConfirm(false)}
-        />
+      <ConfirmDialog
+        show={showConfirm}
+        title="Delete order"
+        confirmText="Yes, delete"
+        cancelText="Cancel"
+        variant="danger"
+        message="Are you sure you want to delete this order?"
+        loading={cancelLoading}
+        onConfirm={confirmCancel}
+        onCancel={() => setShowConfirm(false)}/>
       </div>
     
   );
@@ -605,12 +567,13 @@ function GenericLayout(props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // permit dynamic changes in the list of orders while the user add or delete orders
   const [orders, setOrders] = useState([]);
 
-  // permit dynamic changes in the client while user changes value in NewOrderLayout
-  const [selectedRam, setSelectedRam] = useState(null);
-  const [selectedStorage, setSelectedStorage] = useState(null);
-  const [selectedData, setSelectedData] = useState(null);
+  // permit dynamic changes in the cloudStatus while user changes value in NewOrderLayout
+  const [selectedRam, setSelectedRam] = useState(""); 
+  const [selectedStorage, setSelectedStorage] = useState(""); 
+  const [selectedData, setSelectedData] = useState(""); 
 
   const fetchCloudData = async () => {
       try {
@@ -655,18 +618,20 @@ function GenericLayout(props) {
   // update the cloudStatus and orders if user is logged in
   useEffect(() => {
     fetchCloudData();
+  }, []); // cloud data once
 
+  useEffect(() => {
     if (props.loggedIn) {
       fetchOrders();
     }
-  }, []);
-
+  }, [props.loggedIn]);
+  
   // reset selected values once the user logout
   useEffect(() => {
   if (!props.loggedIn && !props.loggedInTotp) {
-    setSelectedRam(null);
-    setSelectedStorage(null);
-    setSelectedData(null);
+    setSelectedRam("");
+    setSelectedStorage("");
+    setSelectedData("");
   }
 }, [props.loggedIn, props.loggedInTotp]);
 
@@ -701,7 +666,6 @@ function GenericLayout(props) {
             setSelectedStorage={setSelectedStorage}
             selectedData={selectedData}
             setSelectedData={setSelectedData}
-            // onOrderChange={fetchCloudData}
             onOrderChange={() => {
               fetchCloudData();
               fetchOrders();
@@ -710,12 +674,11 @@ function GenericLayout(props) {
 
           <OldOrderLayout
             loggedIn={props.loggedIn}
-            user={props.user}
-            loggedInTotp={props.loggedInTotp}
-            computationData={computationData}
-            storageData={storageData}
-            datatransferData={datatransferData}
-            // onOrderChange={fetchCloudData}
+            // user={props.user}
+            // loggedInTotp={props.loggedInTotp}
+            // computationData={computationData}
+            // storageData={storageData}
+            // datatransferData={datatransferData}
             orders={orders}
             onOrderChange={() => {
               fetchCloudData();
