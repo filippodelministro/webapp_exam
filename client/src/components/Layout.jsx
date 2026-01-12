@@ -99,7 +99,9 @@ function computePrice(ramGb, storageTb, dataGb, computationData, storageData, da
   return totalPrice;
 }
 
-function ConfirmDialog({ show, title, message, confirmText, cancelText, variant, loading, onConfirm, onCancel,}) {
+// function ConfirmDialog({ show, title, message, confirmText, cancelText, variant, loading, onConfirm, onCancel,}) {
+function ConfirmDialog(props) {
+  const {show, title, message, confirmText, cancelText, variant, loading, onConfirm, onCancel } = props;
   return (
     <Modal show={show} onHide={onCancel} centered>
       <Modal.Header closeButton>
@@ -123,7 +125,10 @@ function ConfirmDialog({ show, title, message, confirmText, cancelText, variant,
   );
 }
 
-function ComputationCard({ service, used }) {
+// function ComputationCard({ service, used }) {
+function ComputationCard(props) {
+  const { service, used = 0 } = props;
+
   const percent = service.maxInstances ? Math.round((used / service.maxInstances) * 100): 0;
 
   return (
@@ -154,7 +159,9 @@ function ComputationCard({ service, used }) {
   );
 }
 
-function StorageCard({ service, used = 0 }) {
+// function StorageCard({ service, used = 0 }) {
+function StorageCard(props) {
+  const { service, used = 0 } = props;
   const percent = service.maxGlobalStorage ? Math.round((used / service.maxGlobalStorage) * 100): 0;
 
   return (
@@ -172,7 +179,10 @@ function StorageCard({ service, used = 0 }) {
   );
 }
 
-function DataTransferCard({ service, used = 0 }) {
+// function DataTransferCard({ service, used = 0 }) {
+function DataTransferCard(props) {
+  const { service, used = 0 } = props;
+
   const percent = service.tier1 ? Math.round((used / service.tier1) * 100) : 0;
 
   const basePrice = service.base_price;
@@ -196,7 +206,9 @@ function DataTransferCard({ service, used = 0 }) {
   );
 }
 
-function CloudStatusLayout({ computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData }) {
+// function CloudStatusLayout({ computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData }) {
+function CloudStatusLayout(props) {
+  const { computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData } = props;
 
   if (!computationData || !storageData || !datatransferData || !cloudStatus) {
     return <p>Loading cloud services info...</p>;
@@ -426,10 +438,10 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
   );
 }
 
-// function OldOrderLayout
-// ({ user, loggedIn, loggedInTotp, computationData, storageData, datatransferData, orders, onOrderChange })
-// {
-function OldOrderLayout ({ loggedInTotp, orders, onOrderChange }){
+// function OldOrderLayout ({ loggedInTotp, orders, onOrderChange }){
+function OldOrderLayout (props){
+  const { loggedInTotp, orders, onOrderChange } = props;
+
   // const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
