@@ -159,45 +159,12 @@ app.delete("/api/orders/:orderId", async (req, res) => {
   }
 });
 
-// POST /api/orders
-// This route adds a new order.
-// app.post('/api/new-orders', isLoggedIn,
-//   [
-//     check('ramGb').isInt({ min: 0 }),
-//     check('storageTb').isInt({ min: 0 }),
-//     check('dataGb').isInt({ min: 0 }),
-//     check('numMonths').isInt({ min: 0 }),
-//   ],
-//   async (req, res) => {
-//     const errors = validationResult(req).formatWith(errorFormatter);
-//     if (!errors.isEmpty()) {
-//       return res.status(422).json(errors.errors);
-//     }
-
-//     const order = {
-//       ramGb: req.body.ramGb,
-//       storageTb: req.body.storageTb,
-//       dataGb: req.body.dataGb,
-//       numMonths: req.body.numMonths,
-//       user: req.user.id   // user is taken from the session, NOT from client
-//     };
-
-//     try {
-//       const result = await cloudDao.createOrder(); // returns newly created order
-//       res.json(result);
-//     } catch (err) {
-//       console.log(err);
-//       res.status(503).json({ error: 'Database error' });
-//     }
-//   }
-// );
 // POST /api/new-orders
 app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
   [
     check('ramGb').isInt({ min: 1 }),
     check('storageTb').isInt({ min: 0.1 }),
     check('dataGb').isInt({ min: 0 }),
-    check('numMonths').isInt({ min: 1 }),
     check('totalPrice').isFloat({ min: 1 }),
   ],
   async (req, res) => {
@@ -210,7 +177,6 @@ app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
       ramGb: req.body.ramGb,
       storageTb: req.body.storageTb,
       dataGb: req.body.dataGb,
-      numMonths: req.body.numMonths,
       total_price: req.body.totalPrice,
       email: req.user.username,
     };

@@ -128,7 +128,6 @@ exports.getCloudStatus = () => {
 const convertListOrdersFromDbRecord = (dbRecord) => {
   const listOrders = {};
   listOrders.orderId = dbRecord.order_id;
-  listOrders.numMonths = dbRecord.num_months;
   listOrders.timestamp = dbRecord.timestamp;
   listOrders.ramGb = dbRecord.ram_gb;
   listOrders.storageTb = dbRecord.storage_tb;
@@ -140,7 +139,7 @@ const convertListOrdersFromDbRecord = (dbRecord) => {
 exports.getOrders = (email) => {
     return new Promise((resolve, reject) => {
         const sql = `
-          select order_id, num_months, timestamp, ram_gb, storage_tb, data_gb, total_price
+          select order_id, timestamp, ram_gb, storage_tb, data_gb, total_price
           from orders o inner join users u on o.user_id = u.user_id
           where u.email = ?
         `;
@@ -212,12 +211,12 @@ exports.createOrder = (order) => {
 
         // Insert the order if resources are sufficient
         const insert = `
-          INSERT INTO orders (user_id, num_months, ram_gb, storage_tb, data_gb, total_price)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO orders (user_id, ram_gb, storage_tb, data_gb, total_price)
+          VALUES (?, ?, ?, ?, ?)
         `;
 
         db.run(
-          insert, [userId, order.numMonths, order.ramGb, order.storageTb, order.dataGb, order.total_price],
+          insert, [userId, order.ramGb, order.storageTb, order.dataGb, order.total_price],
           function (err) {
             if (err) return reject(err);
 

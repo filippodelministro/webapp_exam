@@ -240,7 +240,6 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
   const setStorageTb = setSelectedStorage;
   const setDataGb = setSelectedData;
 
-  const [numMonths, setNumMonths] = useState(1);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -298,12 +297,12 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
     }
 
     try {
-      const price = computePrice( parseInt(ramGb), parseInt(storageTb), parseInt(dataGb), computationData, storageData, datatransferData) * parseInt(numMonths);
+      const price = computePrice( parseInt(ramGb), parseInt(storageTb), parseInt(dataGb), computationData, storageData, datatransferData);
       setTotalPrice(price);
     } catch (err) {
       setTotalPrice(0);
     }
-  }, [ramGb, storageTb, dataGb, numMonths, computationData, storageData, datatransferData]);
+  }, [ramGb, storageTb, dataGb, computationData, storageData, datatransferData]);
 
 
   const handleSubmit = async (e) => {
@@ -314,9 +313,8 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
     const ram = parseInt(ramGb);
     const storage = parseInt(storageTb);
     const data = parseInt(dataGb);
-    const months = parseInt(numMonths);
 
-    if (!ram || !storage || !data || !months) {
+    if (!ram || !storage || !data) {
       setError('Please fill in all fields');
       return;
     }
@@ -333,7 +331,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
 
     setLoading(true);
     try {
-      const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, numMonths: months, totalPrice: totalPrice};
+      const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, totalPrice: totalPrice};
       const result = await API.createOrder(newOrder); // <-- await result from backend
 
       // Handle different statuses
@@ -344,7 +342,6 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
         setRamGb('');
         setStorageTb(minStorage);
         setDataGb(minData);
-        setNumMonths(1);
         setTotalPrice(0);
 
         if (onOrderChange) onOrderChange(); 
@@ -412,14 +409,6 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
             </Form.Group>
           </Col>
 
-          {/* Months */}
-          <Col md={3}>
-            <Form.Group>
-              <Form.Label>Months</Form.Label>
-              <Form.Control type="number" min={1} value={numMonths} onChange={e => setNumMonths(e.target.value)}/>
-              <Form.Text className="text-muted">Amount of months</Form.Text>
-            </Form.Group>
-          </Col>
         </Row>
 
         {/* Total Price */}
@@ -485,43 +474,21 @@ function OldOrderLayout ({ loggedInTotp, orders, onOrderChange }){
         <table className="orders-table">
           <thead>
             <tr>
-              <th>Order ID</th><th>Subscribed</th><th>Expiring</th><th>RAM (GB)</th><th>Storage (TB)</th><th>Data (GB)</th><th>Tot Price (€)</th><th>Actions</th>
+              <th>Order ID</th><th>Subscribed</th><th>RAM (GB)</th><th>Storage (TB)</th><th>Data (GB)</th><th>Tot Price (€)</th><th>Actions</th>
             </tr>
           </thead>
          <tbody>
             {orders.map((o, index) => {
               const subscribedDate = o.timestamp ? new Date(o.timestamp) : null;
-              let expiringDate = null;
-
-              // set the expiring date based on subscribed date and numMonths
-              if (subscribedDate && o.numMonths) {
-                expiringDate = new Date(subscribedDate.getTime());
-                expiringDate.setMonth(expiringDate.getMonth() + o.numMonths);
-              }
-
-              // Calculate the cutoff date for cancellation: 1 month before expiring
-              // removed due to testing reasons
-              let cancelAllowed = true;
-              // if (expiringDate) {
-              //   const today = new Date();
-              //   const cutoffDate = new Date(expiringDate.getTime());
-              //   cutoffDate.setMonth(cutoffDate.getMonth() - 1);
-              //   cancelAllowed = today < cutoffDate;
-              // }
 
               // Inform the user about the reason why cancel is disabled
               let hoverText = '';
-              if (!loggedInTotp) {
-                hoverText = "Enable 2FA to cancel orders";
-              } else if (!cancelAllowed) {
-                hoverText = "Cannot cancel in the last month of subscription";
-              }
+              if (!loggedInTotp) hoverText = "Enable 2FA to cancel orders";
 
               return (
                 <tr key={o.orderId ?? index}>
                   <td>{o.orderId}</td>
                   <td>{subscribedDate ? subscribedDate.toLocaleDateString() : '–'}</td>
-                  <td>{expiringDate ? expiringDate.toLocaleDateString() : '–'}</td>
                   <td>{o.ramGb}</td>
                   <td>{o.storageTb}</td>
                   <td>{o.dataGb}</td>
@@ -531,7 +498,7 @@ function OldOrderLayout ({ loggedInTotp, orders, onOrderChange }){
                       <button
                         className="btn btn-sm btn-danger"
                         onClick={() => handleCancelClick(o.orderId)}
-                        disabled={!loggedInTotp || !cancelAllowed}
+                        disabled={!loggedInTotp}
                         title={hoverText}
                         >
                         <i className='bi bi-trash'></i>
