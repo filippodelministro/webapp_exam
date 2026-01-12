@@ -262,33 +262,22 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
 
   // --- Set default values when data arrives ---
   useEffect(() => {
-    if (computationData && computationData.length > 0 && !ramGb) {
-      const firstComp = computationData[0];
-      setRamGb(firstComp.ramTier1);
-    }
-
-    if (storageData && storageData.length > 0 && !storageTb) {
-      const firstStorage = storageData[0];
-      setStorageTb(firstStorage.minStorage || 1);
-    }
-
-    if (datatransferData && datatransferData.length > 0 && !dataGb) {
-      const firstData = datatransferData[0];
-      setDataGb(firstData.base_tier || 1);
-    }
+    if (computationData) setRamGb(computationData[0].ramTier1 ?? 16);
+    if (storageData) setStorageTb(storageData[0].minStorage?? 1);
+    if (datatransferData) setDataGb(datatransferData[0].base_tier ?? 10);
   }, [computationData, storageData, datatransferData]);
 
   // --- Update minStorage based on selected RAM ---
   useEffect(() => {
-    if (!ramGb || !computationData) return;
+    if (!selectedRam || !computationData) return;
 
     const ramNumber = parseInt(ramGb);
     let minStor = 1;
 
     for (const service of computationData) {
-      if (ramNumber === service.ramTier1) minStor = service.minStorageTier1 || 1;
-      else if (ramNumber === service.ramTier2) minStor = service.minStorageTier2 || 1;
-      else if (ramNumber === service.ramTier3) minStor = service.minStorageTier3 || 1;
+      if (ramNumber === service.ramTier1) minStor = service.minStorageTier1 ?? 1;
+      else if (ramNumber === service.ramTier2) minStor = service.minStorageTier2 ?? 1;
+      else if (ramNumber === service.ramTier3) minStor = service.minStorageTier3 ?? 1;
     }
 
     setMinStorage(minStor);
@@ -299,7 +288,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
       if (!prev || current < minStor) return minStor;
       return prev;
     });
-  }, [ramGb, computationData]);
+  }, [selectedRam]);
 
   // --- Dynamically calculate total price unsing computePrice function
   useEffect(() => {
@@ -344,7 +333,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
     setLoading(true);
     try {
       const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, totalPrice: totalPrice};
-      const result = await API.createOrder(newOrder); // <-- await result from backend
+      const result = await API.createOrder(newOrder); 
 
       // Handle different statuses
       if (result.success) {
