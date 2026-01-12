@@ -674,6 +674,7 @@ function GenericLayout(props) {
 
           <OldOrderLayout
             loggedIn={props.loggedIn}
+            loggedInTotp={props.loggedInTotp}
             // user={props.user}
             // loggedInTotp={props.loggedInTotp}
             // computationData={computationData}
