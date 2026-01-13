@@ -340,7 +340,7 @@ function NewOrderLayout(props) {
     } else {
       setTotalPrice(0);
     }
-  }, [selectedRam, selectedStorage, selectedData, computationData, storageData, datatransferData]);
+  }, [selectedRam, selectedData, computationData, storageData, datatransferData]);
 
 
   const handleSubmit = async (e) => {
