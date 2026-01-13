@@ -271,23 +271,17 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
   useEffect(() => {
     if (!selectedRam || !computationData) return;
 
-    const ramNumber = parseInt(ramGb);
     let minStor = 1;
 
-    for (const service of computationData) {
-      if (ramNumber === service.ramTier1) minStor = service.minStorageTier1 ?? 1;
-      else if (ramNumber === service.ramTier2) minStor = service.minStorageTier2 ?? 1;
-      else if (ramNumber === service.ramTier3) minStor = service.minStorageTier3 ?? 1;
+    switch (parseInt(selectedRam)) {
+      case computationData[0].ramTier1: minStor = computationData[0].minStorageTier1 ?? 1; break;
+      case computationData[0].ramTier2: minStor = computationData[0].minStorageTier2 ?? 1; break;
+      case computationData[0].ramTier3: minStor = computationData[0].minStorageTier3 ?? 1;
     }
 
     setMinStorage(minStor);
+    if(storageTb < minStor) setStorageTb(minStor);
 
-    // Ensure storageTb respects minStorage
-    setStorageTb(prev => {
-      const current = parseInt(prev);
-      if (!prev || current < minStor) return minStor;
-      return prev;
-    });
   }, [selectedRam]);
 
   // --- Dynamically calculate total price unsing computePrice function
