@@ -260,14 +260,14 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
   const [minData, setMinData] = useState(1);
 
 
-  // --- Set default values when data arrives ---
+  // --- Set default values when data arrives
   useEffect(() => {
     if (computationData) setRamGb(computationData[0].ramTier1 ?? 16);
     if (storageData) setStorageTb(storageData[0].minStorage?? 1);
     if (datatransferData) setDataGb(datatransferData[0].base_tier ?? 10);
   }, [computationData, storageData, datatransferData]);
 
-  // --- Update minStorage based on selected RAM ---
+  // --- Update minStorage based on selected ram values 
   useEffect(() => {
     if (!selectedRam || !computationData) return;
 
@@ -286,18 +286,18 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
 
   // --- Dynamically calculate total price unsing computePrice function
   useEffect(() => {
-    if (!ramGb || !storageTb || !dataGb || !computationData || !storageData || !datatransferData) {
+    if (!selectedRam || !selectedStorage || !selectedData || !computationData || !storageData || !datatransferData) {
       setTotalPrice(0);
       return;
     }
 
     try {
-      const price = computePrice( parseInt(ramGb), parseInt(storageTb), parseInt(dataGb), computationData, storageData, datatransferData);
+      const price = computePrice( parseInt(selectedRam), parseInt(selectedStorage), parseInt(selectedData), computationData, storageData, datatransferData);
       setTotalPrice(price);
     } catch (err) {
       setTotalPrice(0);
     }
-  }, [ramGb, storageTb, dataGb, computationData, storageData, datatransferData]);
+  }, [selectedRam, selectedStorage, selectedData]);
 
 
   const handleSubmit = async (e) => {
