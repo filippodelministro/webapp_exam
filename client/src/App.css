@@ -142,3 +142,31 @@
 .service-table td {
   white-space: nowrap;
 }
+
+
+.progress-bar {
+  position: relative;
+  height: 20px;
+  background: #f0f0f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.progress-bar-fill--blue {
+  left: 0;
+  background: #007bff; /* Solid blue */
+  border-radius: 10px 0 0 10px;
+}
+
+.progress-bar-fill--yellow {
+  background: #ffc107; /* Solid yellow */
+  border-radius: 0 10px 10px 0;
+  border-left: 1px solid rgba(0,0,0,0.1);
+}

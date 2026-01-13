@@ -127,32 +127,58 @@ function ConfirmDialog(props) {
 
 // function ComputationCard({ service, used }) {
 function ComputationCard(props) {
-  const { service, used = 0 } = props;
+  const { computationData, cloudStatus} = props;
 
-  const percent = service.maxInstances ? Math.round((used / service.maxInstances) * 100): 0;
+  const cd = computationData?.[0];
+
+  const maxInstances = cd?.maxInstances || 0;
+  const ramTier1 = cd?.ramTier1 || 0;
+  const ramTier2 = cd?.ramTier2 || 0;
+  const ramTier3 = cd?.ramTier3 || 0;
+  const priceTier1 = cd?.priceTier1 || 0;
+  const priceTier2 = cd?.priceTier2 || 0;
+  const priceTier3 = cd?.priceTier3 || 0;
+  const minStorageTier1 = cd?.minStorageTier1 || 0;
+  const minStorageTier2 = cd?.minStorageTier2 || 0;
+  const minStorageTier3 = cd?.minStorageTier3 || 0;
+
+  const used = cloudStatus?.usedComputation || 0;
+  const availableSources = maxInstances - used;
 
   return (
     <div className="serviceCard">
-      <h4 className="serviceCardTitle">{service.name}</h4>
-
+      <h4 className="serviceCardTitle">Computation</h4>
       <div className="progress-bar">
+        {/* Blue part is the already used instances */}
         <div
-          className="progress-bar-fill"
-          style={{ width: `${percent}%` }}
+          className="progress-bar-fill progress-bar-fill--blue"
+          style={{ 
+            width: `${Math.round((used / maxInstances) * 100)}%` 
+          }}
         ></div>
+        {/* Yellow: selected instance (always 1) */}
+        {availableSources >= 1 && (
+          <div
+            className="progress-bar-fill progress-bar-fill--yellow"
+            style={{ 
+              left: `${Math.round((used / maxInstances) * 100)}%`,
+              width: `${Math.round((1 / maxInstances) * 100)}%`
+            }}
+          ></div>
+        )}
       </div>
 
-      <p>{used}/{service.maxInstances} used</p>
-
+      <p>{availableSources >= 1 ? used + 1 : used}/{maxInstances} used</p>
+      
       <table className="service-table">
         <thead>
           <tr><th>RAM</th><th>Price</th><th>Min Storage</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>{service.ramTier1}GB</td><td>{service.priceTier1}€/month</td><td>{service.minStorageTier1 != null ? `${service.minStorageTier1} TB` : '-'}</td></tr>
-          <tr><td>{service.ramTier2}GB</td><td>{service.priceTier2}€/month</td><td>{service.minStorageTier2 != null ? `${service.minStorageTier2} TB` : '-'}</td></tr>
-          <tr><td>{service.ramTier3}GB</td><td>{service.priceTier3}€/month</td><td>{service.minStorageTier3 != null ? `${service.minStorageTier3} TB` : '-'}</td></tr>
+          <tr><td>{ramTier1}GB</td><td>{priceTier1}€/month</td><td>{minStorageTier1 != null ? `${minStorageTier1} TB` : '-'}</td></tr>
+          <tr><td>{ramTier2}GB</td><td>{priceTier2}€/month</td><td>{minStorageTier2 != null ? `${minStorageTier2} TB` : '-'}</td></tr>
+          <tr><td>{ramTier3}GB</td><td>{priceTier3}€/month</td><td>{minStorageTier3 != null ? `${minStorageTier3} TB` : '-'}</td></tr>
         </tbody>
       </table>
     </div>
@@ -208,7 +234,7 @@ function DataTransferCard(props) {
 
 // function CloudStatusLayout({ computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData }) {
 function CloudStatusLayout(props) {
-  const { computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData } = props;
+  const { computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData, availableSources } = props;
 
   if (!computationData || !storageData || !datatransferData || !cloudStatus) {
     return <p>Loading cloud services info...</p>;
@@ -216,14 +242,16 @@ function CloudStatusLayout(props) {
 
   return (
     <div className="servicesGrid">
-      {computationData.map(service => {
+      {/* {computationData.map(service => {
         const used = Math.min(service.maxInstances, cloudStatus?.usedComputation || 0);
         const ramSelected = parseInt(selectedRam) || 0;
         const isSelected = ramSelected === service.ramTier1 || ramSelected === service.ramTier2 || ramSelected === service.ramTier3;
         return (
-          <ComputationCard key={`computation-${service.id}`} service={service} used={used + (isSelected ? 1 : 0)}/>
+          <ComputationCard key={`computation-${service.id}`} service={service} selectedRam={selectedRam} cloudStatus={cloudStatus}/>
+          
         );
-      })}
+      })} */}
+      <ComputationCard computationData={computationData} cloudStatus={cloudStatus}/>
 
       {storageData.map(service => {
         const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
@@ -246,7 +274,7 @@ function CloudStatusLayout(props) {
 
 // function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData}) {
 function NewOrderLayout(props) {
-  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData } = props;
+  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData, availableSources, setAvailableSources, cloudStatus } = props;
   // const ramGb = selectedRam;
   // const storageTb = selectedStorage;
   // const dataGb = selectedData;
@@ -263,6 +291,8 @@ function NewOrderLayout(props) {
   const [minStorage, setMinStorage] = useState(1);
   const [minData, setMinData] = useState(1);
 
+  // const usedComputation = cloudStatus?.usedComputation || 0;
+  // const usedStorage = cloudStatus?.usedStorage || 0;
 
   // Set default values when data arrives
   useEffect(() => {
@@ -290,6 +320,12 @@ function NewOrderLayout(props) {
       }
     }
 
+    // console.log("computationData in NewOrderLayout: ", computationData);
+    // console.log(computationData[0].maxInstances-cloudStatus?.usedComputation); 
+
+    if(computationData[0].maxInstances - cloudStatus?.usedComputation < 1)
+      setAvailableSources(false);
+
     // Calculate total price based on selected options
     if (selectedRam && selectedStorage && selectedData && 
         computationData && storageData && datatransferData) {
@@ -303,7 +339,7 @@ function NewOrderLayout(props) {
     } else {
       setTotalPrice(0);
     }
-  }, [selectedRam, selectedStorage, selectedData]);
+  }, [selectedRam, selectedStorage, selectedData, computationData, storageData, datatransferData]);
 
 
   const handleSubmit = async (e) => {
@@ -531,6 +567,8 @@ function GenericLayout(props) {
   const [cloudStatus, setCloudStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const [availableSources, setAvailableSources] = useState(true);
 
   // permit dynamic changes in the list of orders while the user add or delete orders
   const [orders, setOrders] = useState([]);
@@ -614,7 +652,17 @@ function GenericLayout(props) {
 
       <Row className="g-4 mt-2">
         <Col>
-          <CloudStatusLayout computationData={computationData} storageData={storageData} datatransferData={datatransferData} cloudStatus={cloudStatus} selectedRam={selectedRam} selectedStorage={selectedStorage} selectedData={selectedData}/>
+          <CloudStatusLayout 
+            computationData={computationData}
+            storageData={storageData}
+            datatransferData={datatransferData}
+            cloudStatus={cloudStatus}
+            selectedRam={selectedRam}
+            selectedStorage={selectedStorage}
+            selectedData={selectedData}
+            availableSources={availableSources}
+          
+          />
         </Col>
       </Row>
 
@@ -626,11 +674,14 @@ function GenericLayout(props) {
             storageData={storageData}
             datatransferData={datatransferData}
             selectedRam={selectedRam}
+            cloudStatus={cloudStatus}
             setSelectedRam={setSelectedRam}
             selectedStorage={selectedStorage}
             setSelectedStorage={setSelectedStorage}
             selectedData={selectedData}
             setSelectedData={setSelectedData}
+            availableSources={availableSources}
+            setAvailableSources={setAvailableSources}
             onOrderChange={() => {
               fetchCloudData();
               fetchOrders();
