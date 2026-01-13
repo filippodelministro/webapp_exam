@@ -245,16 +245,18 @@ function CloudStatusLayout(props) {
 }
 
 function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData}) {
-  const ramGb = selectedRam;
-  const storageTb = selectedStorage;
-  const dataGb = selectedData;
-  const setRamGb = setSelectedRam;
-  const setStorageTb = setSelectedStorage;
-  const setDataGb = setSelectedData;
+  // const ramGb = selectedRam;
+  // const storageTb = selectedStorage;
+  // const dataGb = selectedData;
+
+  // todo: understand how to remove
+  // const setRamGb = setSelectedRam;
+  // const setStorageTb = setSelectedStorage;
+  // const setDataGb = setSelectedData;
 
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [minStorage, setMinStorage] = useState(1);
   const [minData, setMinData] = useState(1);
@@ -262,9 +264,9 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
 
   // --- Set default values when data arrives
   useEffect(() => {
-    if (computationData) setRamGb(computationData[0].ramTier1 ?? 16);
-    if (storageData) setStorageTb(storageData[0].minStorage?? 1);
-    if (datatransferData) setDataGb(datatransferData[0].base_tier ?? 10);
+    if (computationData) setSelectedRam(computationData[0].ramTier1 ?? 16);
+    if (storageData) setSelectedStorage(storageData[0].minStorage?? 1);
+    if (datatransferData) setSelectedData(datatransferData[0].base_tier ?? 10);
   }, [computationData, storageData, datatransferData]);
 
   // --- Update minStorage based on selected ram values 
@@ -280,7 +282,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
     }
 
     setMinStorage(minStor);
-    if(storageTb < minStor) setStorageTb(minStor);
+    if(selectedStorage < minStor) setSelectedStorage(minStor);
 
   }, [selectedRam]);
 
@@ -305,38 +307,33 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
     setError(null);
     setSuccess(null);
 
-    const ram = parseInt(ramGb);
-    const storage = parseInt(storageTb);
-    const data = parseInt(dataGb);
+    // const ram = parseInt(selectedRam);
+    // const storage = parseInt(selectedStorage);
+    // const data = parseInt(selectedData);
 
-    if (!ram || !storage || !data) {
+    if (!selectedRam || !selectedStorage || !selectedData) {
       setError('Please fill in all fields');
       return;
     }
 
-    if (storage < minStorage) {
-      setError(`Storage must be at least ${minStorage} TB for ${ram} GB RAM`);
+    if (selectedStorage < minStorage) {
+      setError(`Storage must be at least ${minStorage} TB for ${selectedRam} GB RAM`);
       return;
     }
 
-    if (data < minData) {
-      setError(`Data Transfer must be at least ${minData} GB`);
-      return;
-    }
-
-    setLoading(true);
+    //todo: check
+    // setLoading(true);
     try {
-      const newOrder = { ramGb: ram, storageTb: storage, dataGb: data, totalPrice: totalPrice};
+      const newOrder = { ramGb: selectedRam, storageTb: selectedStorage, dataGb: selectedData, totalPrice: totalPrice};
       const result = await API.createOrder(newOrder); 
 
       // Handle different statuses
       if (result.success) {
         setSuccess('Order created successfully!');
 
-        // Reset form (optional)
-        setRamGb('');
-        setStorageTb(minStorage);
-        setDataGb(minData);
+        setSelectedRam('');
+        setSelectedStorage(minStorage);
+        setSelectedData(minData);
         setTotalPrice(0);
 
         if (onOrderChange) onOrderChange(); 
@@ -344,15 +341,14 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
       else if (!result.success){
         setSuccess('Not enough resources for this order!');
       }
-      else {
-        setError('Failed to create order');
-      }
     } catch (err) {
       console.error(err);
       setError('Failed to create order');
-    } finally {
-      setLoading(false);
     }
+    //todo: check
+    // finally {
+    //   setLoading(false);
+    // }
   };
 
   return (
@@ -367,7 +363,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
           <Col md={3}>
             <Form.Group>
               <Form.Label>RAM (GB)</Form.Label>
-              <Form.Select value={ramGb} onChange={e => setRamGb(e.target.value)}>
+              <Form.Select value={selectedRam} onChange={e => setSelectedRam(e.target.value)}>
                 {computationData.map(service => (
                   <optgroup key={service.name} label={service.name}>
                     <option key={`tier1-${service.ramTier1}`} value={service.ramTier1}>
@@ -390,7 +386,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
           <Col md={3}>
             <Form.Group>
               <Form.Label>Storage (TB)</Form.Label>
-              <Form.Control type="number" min={minStorage} value={storageTb} onChange={e => setStorageTb(e.target.value)} placeholder={`Min ${minStorage} TB`}/>
+              <Form.Control type="number" min={minStorage} value={selectedStorage} onChange={e => setSelectedStorage(e.target.value)} placeholder={`Min ${minStorage} TB`}/>
               <Form.Text className="text-muted">Minimum storage required: {minStorage} TB</Form.Text>
             </Form.Group>
           </Col>
@@ -399,7 +395,7 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
           <Col md={3}>
             <Form.Group>
               <Form.Label>Data Transfer (GB)</Form.Label>
-              <Form.Control type="number" min={minData} value={dataGb} onChange={e => setDataGb(e.target.value)} placeholder={`Min ${minData} GB`}/>
+              <Form.Control type="number" min={minData} value={selectedData} onChange={e => setSelectedData(e.target.value)} placeholder={`Min ${minData} GB`}/>
               <Form.Text className="text-muted">Amount of data transfer in GB</Form.Text>
             </Form.Group>
           </Col>
@@ -413,8 +409,10 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
           </Col>
         </Row>
 
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Submitting...' : 'Create Order'}
+        {/* //todo: check with loading */}
+        {/* <Button type="submit" disabled={loading}> */}
+        <Button type="submit">
+          {'Create Order'}
         </Button>
       </Form>
     </div>
@@ -555,8 +553,8 @@ function GenericLayout(props) {
         if(props.loggedIn || props.loggedInTotp){
           // for NewOrderLayout 
           setSelectedRam(computation[0]?.ramTier1 ?? "");
-          setSelectedStorage(storage[0]?.minStorageTbPerOrder ?? "");
-          setSelectedData(datatransfer[0]?.base_tier ?? "");
+          setSelectedStorage(storage[0]?.minStorageTbPerOrder ?? 1);
+          setSelectedData(datatransfer[0]?.base_tier ?? 1);
         }
         
       } catch (err) {
@@ -580,7 +578,7 @@ function GenericLayout(props) {
   // update the cloudStatus and orders if user is logged in
   useEffect(() => {
     fetchCloudData();
-  }, []); // cloud data once
+  }, []); 
 
   useEffect(() => {
     if (props.loggedIn) {

@@ -199,7 +199,7 @@ exports.createOrder = (order) => {
         
         // Check if there are enough resources
         // for computational instances only one order per time is allowed!
-        if (availableComp <= 1) {
+        if (availableComp <= 0) {
           console.log("err for Comp");
           return resolve({ success: false});
         }
