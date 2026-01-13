@@ -244,7 +244,9 @@ function CloudStatusLayout(props) {
   );
 }
 
-function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData}) {
+// function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData}) {
+function NewOrderLayout(props) {
+  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData } = props;
   // const ramGb = selectedRam;
   // const storageTb = selectedStorage;
   // const dataGb = selectedData;
@@ -262,41 +264,43 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
   const [minData, setMinData] = useState(1);
 
 
-  // --- Set default values when data arrives
+  // Set default values when data arrives
   useEffect(() => {
     if (computationData) setSelectedRam(computationData[0].ramTier1 ?? 16);
     if (storageData) setSelectedStorage(storageData[0].minStorage?? 1);
     if (datatransferData) setSelectedData(datatransferData[0].base_tier ?? 10);
   }, [computationData, storageData, datatransferData]);
 
-  // --- Update minStorage based on selected ram values 
+  // Update minStorage and totalPrice when selections change
   useEffect(() => {
-    if (!selectedRam || !computationData) return;
-
-    let minStor = 1;
-
-    switch (parseInt(selectedRam)) {
-      case computationData[0].ramTier1: minStor = computationData[0].minStorageTier1 ?? 1; break;
-      case computationData[0].ramTier2: minStor = computationData[0].minStorageTier2 ?? 1; break;
-      case computationData[0].ramTier3: minStor = computationData[0].minStorageTier3 ?? 1;
+    // Update minStorage based on selected RAM
+    if (selectedRam && computationData) {
+      let minStor = 1;
+      const ramValue = parseInt(selectedRam);
+      
+      switch (ramValue) {
+        case computationData[0]?.ramTier1: minStor = computationData[0].minStorageTier1 ?? 1; break;
+        case computationData[0]?.ramTier2: minStor = computationData[0].minStorageTier2 ?? 1; break;
+        case computationData[0]?.ramTier3: minStor = computationData[0].minStorageTier3 ?? 1; break;
+      }
+      
+      setMinStorage(minStor);
+      if (selectedStorage && parseInt(selectedStorage) < minStor) {
+        setSelectedStorage(minStor);
+      }
     }
 
-    setMinStorage(minStor);
-    if(selectedStorage < minStor) setSelectedStorage(minStor);
-
-  }, [selectedRam]);
-
-  // --- Dynamically calculate total price unsing computePrice function
-  useEffect(() => {
-    if (!selectedRam || !selectedStorage || !selectedData || !computationData || !storageData || !datatransferData) {
-      setTotalPrice(0);
-      return;
-    }
-
-    try {
-      const price = computePrice( parseInt(selectedRam), parseInt(selectedStorage), parseInt(selectedData), computationData, storageData, datatransferData);
-      setTotalPrice(price);
-    } catch (err) {
+    // Calculate total price based on selected options
+    if (selectedRam && selectedStorage && selectedData && 
+        computationData && storageData && datatransferData) {
+      try {
+        const price = computePrice( parseInt(selectedRam),  parseInt(selectedStorage),  parseInt(selectedData),  computationData,  storageData,  datatransferData
+        );
+        setTotalPrice(price);
+      } catch (err) {
+        setTotalPrice(0);
+      }
+    } else {
       setTotalPrice(0);
     }
   }, [selectedRam, selectedStorage, selectedData]);
@@ -336,7 +340,8 @@ function NewOrderLayout({ computationData, storageData, datatransferData, onOrde
         setSelectedData(minData);
         setTotalPrice(0);
 
-        if (onOrderChange) onOrderChange(); 
+        if (onOrderChange) 
+          onOrderChange(); 
       } 
       else if (!result.success){
         setSuccess('Not enough resources for this order!');
