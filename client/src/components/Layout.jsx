@@ -127,7 +127,7 @@ function ConfirmDialog(props) {
 
 // function ComputationCard({ service, used }) {
 function ComputationCard(props) {
-  const { computationData, cloudStatus} = props;
+  const { loggedIn, computationData, cloudStatus } = props;
 
   const cd = computationData?.[0];
 
@@ -144,6 +144,8 @@ function ComputationCard(props) {
 
   const used = cloudStatus?.usedComputation || 0;
   const availableSources = maxInstances - used;
+  const displayUsed = loggedIn ? used + 1 : used; // +1 only when logged in
+  const showNextInstance = loggedIn && availableSources >= 1; // Yellow bar condition
 
   return (
     <div className="serviceCard">
@@ -156,8 +158,8 @@ function ComputationCard(props) {
             width: `${Math.round((used / maxInstances) * 100)}%` 
           }}
         ></div>
-        {/* Yellow: selected instance (always 1) */}
-        {availableSources >= 1 && (
+        {/* Yellow: selected instance (only if loggedIn && available) */}
+        {showNextInstance && (
           <div
             className="progress-bar-fill progress-bar-fill--yellow"
             style={{ 
@@ -168,12 +170,11 @@ function ComputationCard(props) {
         )}
       </div>
 
-      <p>{availableSources >= 1 ? used + 1 : used}/{maxInstances} used</p>
+      <p>{showNextInstance ? displayUsed : used}/{maxInstances} used</p>
       
       <table className="service-table">
         <thead>
-          <tr><th>RAM</th><th>Price</th><th>Min Storage</th>
-          </tr>
+          <tr><th>RAM</th><th>Price</th><th>Min Storage</th></tr>
         </thead>
         <tbody>
           <tr><td>{ramTier1}GB</td><td>{priceTier1}€/month</td><td>{minStorageTier1 != null ? `${minStorageTier1} TB` : '-'}</td></tr>
@@ -234,7 +235,7 @@ function DataTransferCard(props) {
 
 // function CloudStatusLayout({ computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData }) {
 function CloudStatusLayout(props) {
-  const { computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData, availableSources } = props;
+  const { loggedIn, computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData, availableSources } = props;
 
   if (!computationData || !storageData || !datatransferData || !cloudStatus) {
     return <p>Loading cloud services info...</p>;
@@ -251,7 +252,7 @@ function CloudStatusLayout(props) {
           
         );
       })} */}
-      <ComputationCard computationData={computationData} cloudStatus={cloudStatus}/>
+      <ComputationCard loggedIn={loggedIn} computationData={computationData} cloudStatus={cloudStatus}/>
 
       {storageData.map(service => {
         const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
@@ -652,7 +653,8 @@ function GenericLayout(props) {
 
       <Row className="g-4 mt-2">
         <Col>
-          <CloudStatusLayout 
+          <CloudStatusLayout
+            loggedIn={props.loggedIn}
             computationData={computationData}
             storageData={storageData}
             datatransferData={datatransferData}
