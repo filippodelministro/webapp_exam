@@ -188,20 +188,48 @@ function ComputationCard(props) {
 
 // function StorageCard({ service, used = 0 }) {
 function StorageCard(props) {
-  const { service, used = 0 } = props;
-  const percent = service.maxGlobalStorage ? Math.round((used / service.maxGlobalStorage) * 100): 0;
+  const { loggedIn, storageData, cloudStatus, selectedStorage } = props;
 
+  const sd = storageData?.[0];
+  const used = cloudStatus?.usedStorage || 0;
+  const selected = parseInt(selectedStorage) || 0;
+  
+  const maxGlobalStorage = sd?.maxGlobalStorage || 0;
+  const minStorageTbPerOrder = sd?.minStorageTbPerOrder || 0;
+  const price = sd?.price || 0;
+  
+  // Calculate percentages
+  const usedPercent = maxGlobalStorage ? Math.round((used / maxGlobalStorage) * 100) : 0;
+  const selectedPercent = maxGlobalStorage ? Math.round((selected / maxGlobalStorage) * 100) : 0;
+  
   return (
     <div className="serviceCard">
-      <h4 className="serviceCardTitle">{service.name}</h4>
-
+      <h4 className="serviceCardTitle">Storage</h4>
+      
       <div className="progress-bar">
-        <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
+        {/* Blue: used storage */}
+        <div
+          className="progress-bar-fill progress-bar-fill--blue"
+          style={{ width: `${usedPercent}%` }}
+        ></div>
+        
+        {/* Yellow: selected storage */}
+        {used + selected <= maxGlobalStorage && selected > 0 && (
+          <div
+            className="progress-bar-fill progress-bar-fill--yellow"
+            style={{
+              left: `${usedPercent}%`,
+              width: `${selectedPercent}%`
+            }}
+          ></div>
+        )}
       </div>
-
-      <p>{used}/{service.maxGlobalStorage} TB used</p>
-      <p><strong>Min Storage per order:</strong> {service.minStorageTbPerOrder} TB</p>
-      <p><strong>Price:</strong> €{service.price}/TB/month</p>
+      
+      <p>
+        {Math.min(used + selected, maxGlobalStorage)}/{maxGlobalStorage} TB used
+      </p>
+      <p><strong>Min Storage per order:</strong> {minStorageTbPerOrder} TB</p>
+      <p><strong>Price:</strong> €{price}/TB/month</p>
     </div>
   );
 }
@@ -254,13 +282,15 @@ function CloudStatusLayout(props) {
       })} */}
       <ComputationCard loggedIn={loggedIn} computationData={computationData} cloudStatus={cloudStatus}/>
 
-      {storageData.map(service => {
+      {/* {storageData.map(service => {
         const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
         const storageSelected = parseInt(selectedStorage) || 0;
         return (
           <StorageCard key={`storage-${service.id}`} service={service} used={used + storageSelected}/>
         );
-      })}
+      })} */}
+      <StorageCard loggedIn={loggedIn} storageData={storageData} cloudStatus={cloudStatus} selectedStorage={selectedStorage}/>
+
 
       {datatransferData.map(service => {
         const used = cloudStatus?.usedData || 0;
@@ -340,7 +370,7 @@ function NewOrderLayout(props) {
     } else {
       setTotalPrice(0);
     }
-  }, [selectedRam, selectedData, computationData, storageData, datatransferData]);
+  }, [selectedRam, selectedStorage, selectedData, computationData, storageData, datatransferData]);
 
 
   const handleSubmit = async (e) => {
@@ -431,7 +461,9 @@ function NewOrderLayout(props) {
               <Form.Control type="number" min={minStorage} value={selectedStorage} onChange={e => setSelectedStorage(e.target.value)} placeholder={`Min ${minStorage} TB`}/>
               <Form.Text className="text-muted">Minimum storage required: {minStorage} TB</Form.Text>
             </Form.Group>
-          </Col>
+          </Col> 
+
+
 
           {/* Data Transfer */}
           <Col md={3}>

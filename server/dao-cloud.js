@@ -184,10 +184,10 @@ exports.createOrder = (order) => {
       const userId = row.user_id;
 
       // Check available resources
-      const checkResources = `
+        const checkResources = `
         SELECT 
-          (SELECT max_instances FROM computation) - COUNT(o.order_id) AS availableComp,
-          (SELECT max_gloabl_storage FROM storage) - SUM(o.storage_tb) AS availableStorage
+          COALESCE((SELECT max_instances FROM computation), 10) - COUNT(o.order_id) AS availableComp,
+          COALESCE((SELECT max_gloabl_storage FROM storage), 1000) - COALESCE(SUM(o.storage_tb), 0) AS availableStorage
         FROM orders o
       `;
 
