@@ -195,7 +195,7 @@ function StorageCard(props) {
   const selected = parseInt(selectedStorage) || 0;
   
   const maxGlobalStorage = sd?.maxGlobalStorage || 0;
-  const minStorageTbPerOrder = sd?.minStorageTbPerOrder || 0;
+  // const minStorageTbPerOrder = sd?.minStorageTbPerOrder || 0;
   const price = sd?.price || 0;
   
   // Calculate percentages
@@ -228,35 +228,87 @@ function StorageCard(props) {
       <p>
         {Math.min(used + selected, maxGlobalStorage)}/{maxGlobalStorage} TB used
       </p>
-      <p><strong>Min Storage per order:</strong> {minStorageTbPerOrder} TB</p>
-      <p><strong>Price:</strong> €{price}/TB/month</p>
+      {/* <p><strong>Min Storage per order:</strong> {minStorageTbPerOrder} TB</p> */}
+      <p><strong>Price:</strong> €{price}/TB</p>
+      <p><small>All prices are monthly prices</small></p>
+
     </div>
   );
 }
 
 // function DataTransferCard({ service, used = 0 }) {
 function DataTransferCard(props) {
-  const { service, used = 0 } = props;
+  const {loggedIn, datatransferData, cloudStatus, selectedData} = props;
 
-  const percent = service.tier1 ? Math.round((used / service.tier1) * 100) : 0;
+  const dtd = datatransferData?.[0];
+  const used = cloudStatus?.usedData || 0;
+  const selected = parseInt(selectedData) || 0;
 
-  const basePrice = service.base_price;
-  const tier1Price = (service.base_price * service.tier1_multiplier).toFixed(2);
-  const tier2Price = (service.base_price * service.tier2_multiplier).toFixed(2);
+  // const base_tier = dtd?.datatransferData.base_tier;
+  const base_tier = dtd?.base_tier || 0;
+  const tier1 = dtd?.tier1;
+  const basePrice = dtd?.base_price || 0;
+  const tier1_multiplier = dtd?.tier1_multiplier;
+  const tier2_multiplier = dtd?.tier2_multiplier;
+
+  const tier1Price = (basePrice * tier1_multiplier).toFixed(2);
+  const tier2Price = (basePrice * tier2_multiplier).toFixed(2);
+  
+  // const percent = base_tier ? Math.round((used / base_tier) * 100) : 0;
+  // const percent = base_tier ? Math.round((used / base_tier) * 100) : 0;
+  const percent = tier1 ? Math.round((selected / tier1) * 100) : 0;
+
+  //todo: using 1000 as maximum value; change in all yellow if used + selected > 1000
+  const usedPercent = 1000 ? Math.round((used / 1000) * 100) : 0;
+  const selectedPercent = 1000 ? Math.round((selected / 1000) * 100) : 0;
+
+  // return (
+  //   <div className="serviceCard">
+  //     <h4 className="serviceCardTitle">Data Transfer</h4>
+
+  //     <div className="progress-bar">
+  //       <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
+  //     </div>
+
+  //     <p>{used} GB used</p>
+
+  //     <p><strong>Up to {base_tier} GB:</strong> €{basePrice}</p>
+  //     <p><strong>Up to {tier1} GB:</strong> €{tier1Price}/GB</p>
+  //     <p><strong>Above {tier1} GB:</strong> €{tier2Price}/GB</p>
+  //   </div>
+  // );
 
   return (
     <div className="serviceCard">
-      <h4 className="serviceCardTitle">{service.name}</h4>
-
+      <h4 className="serviceCardTitle">Data Transfer</h4>
+      
       <div className="progress-bar">
-        <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
+        {/* Blue: used storage */}
+        <div
+          className="progress-bar-fill progress-bar-fill--blue"
+          style={{ width: `${usedPercent}%` }}
+        ></div>
+        
+        {/* Yellow: selected storage */}
+        {used + selected <= 1000 && selected > 0 && (
+          <div
+            className="progress-bar-fill progress-bar-fill--yellow"
+            style={{
+              left: `${usedPercent}%`,
+              width: `${selectedPercent}%`
+            }}
+          ></div>
+        )}
       </div>
-
+      
       <p>{used} GB used</p>
 
-      <p><strong>Up to {service.base_tier} GB:</strong> €{basePrice}</p>
-      <p><strong>Up to {service.tier1} GB:</strong> €{tier1Price}/GB</p>
-      <p><strong>Above {service.tier1} GB:</strong> €{tier2Price}/GB</p>
+      <p><strong>Up to {base_tier} GB:</strong> €{basePrice}/GB</p>
+      <p><strong>Up to {tier1} GB:</strong> €{tier1Price}/GB</p>
+      <p><strong>Above {tier1} GB:</strong> €{tier2Price}/GB</p>
+
+      <p><small>All prices are monthly prices</small></p>
+
     </div>
   );
 }
@@ -292,13 +344,16 @@ function CloudStatusLayout(props) {
       <StorageCard loggedIn={loggedIn} storageData={storageData} cloudStatus={cloudStatus} selectedStorage={selectedStorage}/>
 
 
-      {datatransferData.map(service => {
+      {/* {datatransferData.map(service => {
         const used = cloudStatus?.usedData || 0;
         const dataSelected = parseInt(selectedData) || 0;
         return (
           <DataTransferCard key={`datatransfer-${service.id}`} service={service} used={used + dataSelected}/>
         );
-      })}
+      })} */}
+
+      <DataTransferCard loggedIn={loggedIn} datatransferData={datatransferData} cloudStatus={cloudStatus} selectedData={selectedData}/>
+
     </div>
   );
 }
