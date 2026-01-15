@@ -159,6 +159,12 @@
   transition: all 0.3s ease;
 }
 
+.progress-bar-fill--red {
+  left: 0;
+  background: #dc3545; /* Solid red */
+  border-radius: 10px 0 0 10px;
+}
+
 .progress-bar-fill--blue {
   left: 0;
   background: #007bff; /* Solid blue */

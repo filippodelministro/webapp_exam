@@ -150,14 +150,19 @@ function ComputationCard(props) {
   return (
     <div className="serviceCard">
       <h4 className="serviceCardTitle">Computation</h4>
-      <div className="progress-bar">
-        {/* Blue part is the already used instances */}
+<div className="progress-bar">
+        {/* Red fill when no RAM available, blue otherwise */}
         <div
-          className="progress-bar-fill progress-bar-fill--blue"
+          className={`progress-bar-fill ${
+            !availableRam 
+              ? "progress-bar-fill--red" 
+              : "progress-bar-fill--blue"
+          }`}
           style={{ 
             width: `${Math.round((used / maxInstances) * 100)}%` 
           }}
         ></div>
+
         {/* Yellow: selected instance (only if loggedIn && available) */}
         {showNextInstance && (
           <div
