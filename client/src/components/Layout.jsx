@@ -198,7 +198,6 @@ function ComputationCard(props) {
 }
 
 // function StorageCard({ service, used = 0 }) {
-// todo: fix when user is not logged in
 function StorageCard(props) {
   const { loggedIn, storageData, cloudStatus, selectedStorage, availableStorage } = props;
 
@@ -808,21 +807,21 @@ function GenericLayout(props) {
 
     // Check global storage limit
     if (storageData?.[0]?.maxGlobalStorage && cloudStatus?.usedStorage !== undefined) {
-      const totalStorageNeeded = cloudStatus.usedStorage + parseInt(selectedStorage || 0);
-      isStorageAvailable = totalStorageNeeded <= storageData[0].maxGlobalStorage;
+      const tot = cloudStatus.usedStorage + parseInt(selectedStorage || 1);
+      isStorageAvailable = (tot <= storageData[0].maxGlobalStorage);
     }
 
     // Check RAM-specific min storage requirements
-    if (selectedRam && computationData?.[0] && selectedStorage) {
-      const ramValue = parseInt(selectedRam);
-      let minStorageRequired = 1;
+    // if (selectedRam && computationData?.[0] && selectedStorage) {
+    //   const ramValue = parseInt(selectedRam);
+    //   let minStorageRequired = 1;
       
-      if (ramValue === computationData[0].ramTier1) minStorageRequired = computationData[0].minStorageTier1 ?? 1;
-      else if (ramValue === computationData[0].ramTier2) minStorageRequired = computationData[0].minStorageTier2 ?? 1;
-      else if (ramValue === computationData[0].ramTier3) minStorageRequired = computationData[0].minStorageTier3 ?? 1;
+    //   if (ramValue === computationData[0].ramTier1) minStorageRequired = computationData[0].minStorageTier1 ?? 1;
+    //   else if (ramValue === computationData[0].ramTier2) minStorageRequired = computationData[0].minStorageTier2 ?? 1;
+    //   else if (ramValue === computationData[0].ramTier3) minStorageRequired = computationData[0].minStorageTier3 ?? 1;
       
-      isStorageAvailable = isStorageAvailable && parseInt(selectedStorage) >= minStorageRequired;
-    }
+    //   isStorageAvailable = isStorageAvailable && parseInt(selectedStorage) >= minStorageRequired;
+    // }
 
     setAvailableStorage(isStorageAvailable);
   }, [cloudStatus?.usedStorage, storageData, selectedRam, selectedStorage]);
