@@ -127,7 +127,7 @@ function ConfirmDialog(props) {
 
 // function ComputationCard({ service, used }) {
 function ComputationCard(props) {
-  const { loggedIn, computationData, cloudStatus } = props;
+  const { loggedIn, computationData, cloudStatus, availableRam } = props;
 
   const cd = computationData?.[0];
 
@@ -182,13 +182,19 @@ function ComputationCard(props) {
           <tr><td>{ramTier3}GB</td><td>{priceTier3}€/month</td><td>{minStorageTier3 != null ? `${minStorageTier3} TB` : '-'}</td></tr>
         </tbody>
       </table>
+      {!availableRam && (
+  <Alert variant="warning" className="mt-2">
+    No computation instances available
+  </Alert>
+)}
+
     </div>
   );
 }
 
 // function StorageCard({ service, used = 0 }) {
 function StorageCard(props) {
-  const { loggedIn, storageData, cloudStatus, selectedStorage } = props;
+  const { loggedIn, storageData, cloudStatus, selectedStorage, availableStorage } = props;
 
   const sd = storageData?.[0];
   const used = cloudStatus?.usedStorage || 0;
@@ -232,6 +238,11 @@ function StorageCard(props) {
       <p><strong>Price:</strong> €{price}/TB</p>
       <p><small>All prices are monthly prices</small></p>
 
+        {!availableStorage && (
+  <Alert variant="warning" className="mt-2">
+    Storage limit reached or min storage not met
+  </Alert>
+)}
     </div>
   );
 }
@@ -315,7 +326,7 @@ function DataTransferCard(props) {
 
 // function CloudStatusLayout({ computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData }) {
 function CloudStatusLayout(props) {
-  const { loggedIn, computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData, availableSources } = props;
+  const { loggedIn, computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData, availableRam, availableStorage, availableSources } = props;
 
   if (!computationData || !storageData || !datatransferData || !cloudStatus) {
     return <p>Loading cloud services info...</p>;
@@ -332,7 +343,7 @@ function CloudStatusLayout(props) {
           
         );
       })} */}
-      <ComputationCard loggedIn={loggedIn} computationData={computationData} cloudStatus={cloudStatus}/>
+      <ComputationCard loggedIn={loggedIn} computationData={computationData} cloudStatus={cloudStatus} availableRam={availableRam}/>
 
       {/* {storageData.map(service => {
         const used = Math.min(service.maxGlobalStorage, cloudStatus?.usedStorage || 0);
@@ -341,7 +352,7 @@ function CloudStatusLayout(props) {
           <StorageCard key={`storage-${service.id}`} service={service} used={used + storageSelected}/>
         );
       })} */}
-      <StorageCard loggedIn={loggedIn} storageData={storageData} cloudStatus={cloudStatus} selectedStorage={selectedStorage}/>
+      <StorageCard loggedIn={loggedIn} storageData={storageData} cloudStatus={cloudStatus} selectedStorage={selectedStorage} availableStorage={availableStorage}/>
 
 
       {/* {datatransferData.map(service => {
@@ -360,7 +371,7 @@ function CloudStatusLayout(props) {
 
 // function NewOrderLayout({ computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData}) {
 function NewOrderLayout(props) {
-  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData, availableSources, setAvailableSources, cloudStatus } = props;
+  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData, availableSources, availableRam, availableStorage, setAvailableRam, setAvailableStorage, setAvailableSources, cloudStatus } = props;
   // const ramGb = selectedRam;
   // const storageTb = selectedStorage;
   // const dataGb = selectedData;
@@ -543,9 +554,15 @@ function NewOrderLayout(props) {
         {/* <Button type="submit">
           {'Create Order'}
         </Button> */}
-         <Button type="submit" disabled={!availableSources}>
-          {!availableSources ? 'Resources unavailable' : 'Create Order'}
-        </Button>
+<Button 
+  type="submit" 
+  disabled={!availableRam || !availableStorage}
+>
+  {(!availableRam || !availableStorage) 
+    ? 'Resources unavailable' 
+    : 'Create Order'
+  }
+</Button>
       </Form>
     </div>
   );
@@ -659,7 +676,9 @@ function GenericLayout(props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  const [availableSources, setAvailableSources] = useState(true);
+  // const [availableSources, setAvailableSources] = useState(true);
+  const [availableRam, setAvailableRam] = useState(true);
+  const [availableStorage, setAvailableStorage] = useState(true);
 
   // permit dynamic changes in the list of orders while the user add or delete orders
   const [orders, setOrders] = useState([]);
@@ -731,18 +750,53 @@ function GenericLayout(props) {
   }, [props.loggedIn, props.loggedInTotp]);
 
   // Check availability of resources when cloudStatus or selected values change
+  // useEffect(() => {
+  //   let isAvailable = true;
+
+  //   // Check computation instances
+  //   if (computationData?.[0]?.maxInstances && cloudStatus?.usedComputation) {
+  //     isAvailable = cloudStatus.usedComputation < computationData[0].maxInstances;
+  //   }
+
+  //   // Check storage (used + selected <= max)
+  //   if (storageData?.[0]?.maxGlobalStorage && cloudStatus?.usedStorage) {
+  //     const totalStorageNeeded = cloudStatus.usedStorage + parseInt(selectedStorage || 0);
+  //     isAvailable = isAvailable && totalStorageNeeded <= storageData[0].maxGlobalStorage;
+  //   }
+
+  //   // Check RAM-specific min storage requirements
+  //   if (selectedRam && computationData?.[0] && selectedStorage) {
+  //     const ramValue = parseInt(selectedRam);
+  //     let minStorageRequired = 1;
+      
+  //     if (ramValue === computationData[0].ramTier1) minStorageRequired = computationData[0].minStorageTier1 ?? 1;
+  //     else if (ramValue === computationData[0].ramTier2) minStorageRequired = computationData[0].minStorageTier2 ?? 1;
+  //     else if (ramValue === computationData[0].ramTier3) minStorageRequired = computationData[0].minStorageTier3 ?? 1;
+      
+  //     isAvailable = isAvailable && parseInt(selectedStorage) >= minStorageRequired;
+  //   }
+
+  //   setAvailableSources(isAvailable);
+  // }, [cloudStatus, computationData, storageData, selectedRam, selectedStorage]);
+
+
+    // RAM availability (at least one instance available)
   useEffect(() => {
-    let isAvailable = true;
-
-    // Check computation instances
-    if (computationData?.[0]?.maxInstances && cloudStatus?.usedComputation) {
-      isAvailable = cloudStatus.usedComputation < computationData[0].maxInstances;
+    if (computationData?.[0]?.maxInstances && cloudStatus?.usedComputation !== undefined) {
+      setAvailableRam(cloudStatus.usedComputation < computationData[0].maxInstances);
+    } else {
+      setAvailableRam(true);
     }
+  }, [cloudStatus?.usedComputation, computationData]);
 
-    // Check storage (used + selected <= max)
-    if (storageData?.[0]?.maxGlobalStorage && cloudStatus?.usedStorage) {
+  // Storage availability (used + selected <= max + RAM min requirements)
+  useEffect(() => {
+    let isStorageAvailable = true;
+
+    // Check global storage limit
+    if (storageData?.[0]?.maxGlobalStorage && cloudStatus?.usedStorage !== undefined) {
       const totalStorageNeeded = cloudStatus.usedStorage + parseInt(selectedStorage || 0);
-      isAvailable = isAvailable && totalStorageNeeded <= storageData[0].maxGlobalStorage;
+      isStorageAvailable = totalStorageNeeded <= storageData[0].maxGlobalStorage;
     }
 
     // Check RAM-specific min storage requirements
@@ -754,11 +808,11 @@ function GenericLayout(props) {
       else if (ramValue === computationData[0].ramTier2) minStorageRequired = computationData[0].minStorageTier2 ?? 1;
       else if (ramValue === computationData[0].ramTier3) minStorageRequired = computationData[0].minStorageTier3 ?? 1;
       
-      isAvailable = isAvailable && parseInt(selectedStorage) >= minStorageRequired;
+      isStorageAvailable = isStorageAvailable && parseInt(selectedStorage) >= minStorageRequired;
     }
 
-    setAvailableSources(isAvailable);
-  }, [cloudStatus, computationData, storageData, selectedRam, selectedStorage]);
+    setAvailableStorage(isStorageAvailable);
+  }, [cloudStatus?.usedStorage, storageData, selectedRam, selectedStorage]);
 
   if (loading) return <p>Loading cloud services info...</p>;
   if (error) return <p>{error}</p>;
@@ -782,7 +836,10 @@ function GenericLayout(props) {
             selectedRam={selectedRam}
             selectedStorage={selectedStorage}
             selectedData={selectedData}
-            availableSources={availableSources}
+            availableRam={availableRam}
+            availableStorage={availableStorage}
+
+            // availableSources={availableSources}
           
           />
         </Col>
@@ -802,8 +859,12 @@ function GenericLayout(props) {
             setSelectedStorage={setSelectedStorage}
             selectedData={selectedData}
             setSelectedData={setSelectedData}
-            availableSources={availableSources}
-            setAvailableSources={setAvailableSources}
+            availableRam={availableRam}
+            setAvailableRam={setAvailableRam}
+            availableStorage={availableStorage}
+            setAvailableStorage={setAvailableStorage}
+            // availableSources={availableSources}
+            // setAvailableSources={setAvailableSources}
             onOrderChange={() => {
               fetchCloudData();
               fetchOrders();
