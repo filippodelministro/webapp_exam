@@ -409,8 +409,8 @@ function NewOrderLayout(props) {
     // console.log("computationData in NewOrderLayout: ", computationData);
     // console.log(computationData[0].maxInstances-cloudStatus?.usedComputation); 
 
-    if(computationData[0].maxInstances - cloudStatus?.usedComputation < 1)
-      setAvailableSources(false);
+    // if(computationData[0].maxInstances - cloudStatus?.usedComputation < 1)
+    //   setAvailableSources(false);
 
     // Calculate total price based on selected options
     if (selectedRam && selectedStorage && selectedData && 
@@ -540,8 +540,11 @@ function NewOrderLayout(props) {
 
         {/* //todo: check with loading */}
         {/* <Button type="submit" disabled={loading}> */}
-        <Button type="submit">
+        {/* <Button type="submit">
           {'Create Order'}
+        </Button> */}
+         <Button type="submit" disabled={!availableSources}>
+          {!availableSources ? 'Resources unavailable' : 'Create Order'}
         </Button>
       </Form>
     </div>
@@ -706,11 +709,12 @@ function GenericLayout(props) {
     }
   };
 
-  // update the cloudStatus and orders if user is logged in
+  // update the cloudStatus (in any case; no need to be logged in)
   useEffect(() => {
     fetchCloudData();
   }, []); 
 
+  // fetch orders only when logged in
   useEffect(() => {
     if (props.loggedIn) {
       fetchOrders();
@@ -719,13 +723,42 @@ function GenericLayout(props) {
   
   // reset selected values once the user logout
   useEffect(() => {
-  if (!props.loggedIn && !props.loggedInTotp) {
-    setSelectedRam("");
-    setSelectedStorage("");
-    setSelectedData("");
-  }
-}, [props.loggedIn, props.loggedInTotp]);
+    if (!props.loggedIn && !props.loggedInTotp) {
+      setSelectedRam("");
+      setSelectedStorage("");
+      setSelectedData("");
+    }
+  }, [props.loggedIn, props.loggedInTotp]);
 
+  // Check availability of resources when cloudStatus or selected values change
+  useEffect(() => {
+    let isAvailable = true;
+
+    // Check computation instances
+    if (computationData?.[0]?.maxInstances && cloudStatus?.usedComputation) {
+      isAvailable = cloudStatus.usedComputation < computationData[0].maxInstances;
+    }
+
+    // Check storage (used + selected <= max)
+    if (storageData?.[0]?.maxGlobalStorage && cloudStatus?.usedStorage) {
+      const totalStorageNeeded = cloudStatus.usedStorage + parseInt(selectedStorage || 0);
+      isAvailable = isAvailable && totalStorageNeeded <= storageData[0].maxGlobalStorage;
+    }
+
+    // Check RAM-specific min storage requirements
+    if (selectedRam && computationData?.[0] && selectedStorage) {
+      const ramValue = parseInt(selectedRam);
+      let minStorageRequired = 1;
+      
+      if (ramValue === computationData[0].ramTier1) minStorageRequired = computationData[0].minStorageTier1 ?? 1;
+      else if (ramValue === computationData[0].ramTier2) minStorageRequired = computationData[0].minStorageTier2 ?? 1;
+      else if (ramValue === computationData[0].ramTier3) minStorageRequired = computationData[0].minStorageTier3 ?? 1;
+      
+      isAvailable = isAvailable && parseInt(selectedStorage) >= minStorageRequired;
+    }
+
+    setAvailableSources(isAvailable);
+  }, [cloudStatus, computationData, storageData, selectedRam, selectedStorage]);
 
   if (loading) return <p>Loading cloud services info...</p>;
   if (error) return <p>{error}</p>;
