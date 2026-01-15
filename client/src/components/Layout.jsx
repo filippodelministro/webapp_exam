@@ -198,6 +198,7 @@ function ComputationCard(props) {
 }
 
 // function StorageCard({ service, used = 0 }) {
+// todo: fix when user is not logged in
 function StorageCard(props) {
   const { loggedIn, storageData, cloudStatus, selectedStorage, availableStorage } = props;
 
@@ -212,20 +213,27 @@ function StorageCard(props) {
   // Calculate percentages
   const usedPercent = maxGlobalStorage ? Math.round((used / maxGlobalStorage) * 100) : 0;
   const selectedPercent = maxGlobalStorage ? Math.round((selected / maxGlobalStorage) * 100) : 0;
+  const totalStoragePercent = Math.round(((used + selected) / maxGlobalStorage) * 100);
   
   return (
     <div className="serviceCard">
       <h4 className="serviceCardTitle">Storage</h4>
       
       <div className="progress-bar">
-        {/* Blue: used storage */}
+        {/* Red fill when no storage available, blue otherwise */}
         <div
-          className="progress-bar-fill progress-bar-fill--blue"
-          style={{ width: `${usedPercent}%` }}
+          className={`progress-bar-fill ${
+            !availableStorage 
+              ? "progress-bar-fill--red" 
+              : "progress-bar-fill--blue"
+          }`}
+          style={{ 
+            width: `${!availableStorage ? totalStoragePercent : usedPercent}%` 
+          }}
         ></div>
         
-        {/* Yellow: selected storage */}
-        {used + selected <= maxGlobalStorage && selected > 0 && (
+        {/* Yellow bar ONLY shows if storage is available */}
+        {availableStorage && used + selected <= maxGlobalStorage && selected > 0 && (
           <div
             className="progress-bar-fill progress-bar-fill--yellow"
             style={{
@@ -239,15 +247,15 @@ function StorageCard(props) {
       <p>
         {Math.min(used + selected, maxGlobalStorage)}/{maxGlobalStorage} TB used
       </p>
-      {/* <p><strong>Min Storage per order:</strong> {minStorageTbPerOrder} TB</p> */}
+      
       <p><strong>Price:</strong> €{price}/TB</p>
       <p><small>All prices are monthly prices</small></p>
 
-        {!availableStorage && (
-  <Alert variant="warning" className="mt-2">
-    Storage limit reached or min storage not met
-  </Alert>
-)}
+      {!availableStorage && (
+        <Alert variant="warning" className="mt-2">
+          Storage limit reached or min storage not met
+        </Alert>
+      )}
     </div>
   );
 }
@@ -690,7 +698,7 @@ function GenericLayout(props) {
 
   // permit dynamic changes in the cloudStatus while user changes value in NewOrderLayout
   const [selectedRam, setSelectedRam] = useState(""); 
-  const [selectedStorage, setSelectedStorage] = useState(""); 
+  const [selectedStorage, setSelectedStorage] = useState(1); 
   const [selectedData, setSelectedData] = useState(""); 
 
   const fetchCloudData = async () => {
@@ -818,6 +826,7 @@ function GenericLayout(props) {
 
     setAvailableStorage(isStorageAvailable);
   }, [cloudStatus?.usedStorage, storageData, selectedRam, selectedStorage]);
+
 
   if (loading) return <p>Loading cloud services info...</p>;
   if (error) return <p>{error}</p>;
