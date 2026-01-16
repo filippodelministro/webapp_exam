@@ -130,6 +130,64 @@ function StorageCard(props) {
   );
 }
 
+function GeneralProgressBar(props) {
+  const {used, selected, usedPercent, selectedPercent} = props;
+  return (
+    <div>
+
+      {/* Used (blue) + Selected (yellow) progress bar */}
+      <div className="progress-bar" style={{ position: 'relative' }}>
+        <div
+          className="progress-bar-fill progress-bar-fill--blue"
+          style={{ width: `${usedPercent}%` }}
+        />
+        {used + selected <= MAX_DATATRANSFER_GB && selected > 0 && (
+          <div
+            className="progress-bar-fill progress-bar-fill--yellow"
+            style={{
+              left: `${usedPercent}%`,
+              width: `${selectedPercent}%`
+            }}
+          />
+        )}
+      </div>
+      
+      <p>{used} GB used</p>
+    </div>
+  );
+}
+
+
+function SelectedProgressBar(props) {
+ const {loggedIn, selected, tier, price, usedPercent, colorClass = "progress-bar-fill--blue"} = props;
+ 
+
+  // Calculate percentage from selected/tier
+  const percent = tier > 0 ? Math.round((selected / tier) * 100) : 0;
+
+  return (
+    // todo: add control on loggeIn
+    <div className="tier-section">
+      <div className="tier-header">
+        <span className="tier-label">
+           Up to {tier} GB (€{price}/GB)
+        </span>
+        <span className="tier-usage">
+          {selected}/{tier} GB ({percent}%)
+        </span>
+      </div>
+      
+      <div className="progress-bar" style={{ position: 'relative' }}>
+        <div
+          className={`progress-bar-fill ${colorClass}`}
+          style={{ width: `${usedPercent}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+
 function DataTransferCard(props) {
   const { loggedIn, datatransferData, cloudStatus, selectedData } = props;
 
@@ -166,89 +224,35 @@ function DataTransferCard(props) {
     : 0;
 
   // Tier percentages (relative to tier caps)
-  const baseTierPercent =
-    base_tier > 0 ? Math.round((selectedBaseTier / base_tier) * 100) : 0;
-  const tier1Percent =
-    tier1 > 0 ? Math.round((selectedTier1 / tier1) * 100) : 0;
+  const baseTierPercent = base_tier > 0 ? Math.round((selectedBaseTier / base_tier) * 100) : 0;
+  const tier1Percent = tier1 > 0 ? Math.round((selectedTier1 / tier1) * 100) : 0;
 
   return (
     <div className="serviceCard">
       <h4 className="serviceCardTitle">Data Transfer</h4>
 
-      {/* Global Progress Bar: used (blue) + selected (yellow, only if logged in) */}
-      <div className="progress-bar">
-        <div
-          className="progress-bar-fill progress-bar-fill--blue"
-          style={{ width: `${usedPercent}%` }}
-        />
-        {loggedIn && used + selected <= MAX_DATATRANSFER_GB && selected > 0 && (
-          <div
-            className="progress-bar-fill progress-bar-fill--yellow"
-            style={{
-              left: `${usedPercent}%`,
-              width: `${selectedPercent}%`,
-            }}
-          />
-        )}
-      </div>
+        <GeneralProgressBar used={used} selected={selected} usedPercent={usedPercent} selectedPercent={selectedPercent}/>
 
-      {/* Base Tier Progress Bar */}
-      <div className="tier-section">
-        <div className="tier-header">
-          <span className="tier-label">
-            <strong>Base Tier:</strong> Up to {base_tier} GB (€{basePrice}/GB)
-          </span>
-          <span className="tier-usage">
-            {selectedBaseTier}/{base_tier} GB ({baseTierPercent}%)
-          </span>
+            {/* <p>{used} GB used</p>
+            <p><strong>Up to {base_tier} GB:</strong> €{basePrice}/GB</p>
+            <p><strong>Up to {tier1} GB:</strong> €{tier1Price}/GB</p>
+            <p><strong>Above {tier1} GB:</strong> €{tier2Price}/GB</p>
+            <p><small>All prices are monthly prices</small></p> */}
+
+        <div className="tier-section">
+          <SelectedProgressBar loggedIn={loggedIn} selected={selectedBaseTier} tier={base_tier} price={basePrice} usedPercent={baseTierPercent} colorClass="progress-bar-fill--darkblue" />
         </div>
-        <div className="progress-bar">
-          <div
-            className="progress-bar-fill progress-bar-fill--darkblue"
-            style={{ width: `${baseTierPercent}%` }}
-          />
-        </div>
-      </div>
 
       {/* Tier 1 Progress Bar */}
       {tier1 > 0 && (
         <div className="tier-section">
-          <div className="tier-header">
-            <span className="tier-label">
-              <strong>Tier 1:</strong> Up to {tier1} GB (€{tier1Price}/GB)
-            </span>
-            <span className="tier-usage">
-              {selectedTier1}/{tier1} GB ({tier1Percent}%)
-            </span>
-          </div>
-          <div className="progress-bar">
-            <div
-              className="progress-bar-fill progress-bar-fill--green"
-              style={{ width: `${tier1Percent}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Tier 2 - No progress bar (unlimited) */}
-      {selectedTier2 > 0 && (
-        <div className="tier-section">
-          <div className="tier-header">
-            <span className="tier-label">
-              <strong>Tier 2:</strong> Unlimited (€{tier2Price}/GB)
-            </span>
-            <span className="tier-usage">{selectedTier2} GB</span>
-          </div>
+          <SelectedProgressBar loggedIn={loggedIn} selected={selectedTier1} tier={tier1} price={tier1Price} usedPercent={tier1Percent} colorClass="progress-bar-fill--green" />
         </div>
       )}
 
       <div className="total-section">
-        <p>
-          <strong>Total selected: {selected} GB</strong>
-        </p>
-        <p>
-          <small>All prices are monthly prices</small>
-        </p>
+        <p><strong>Total selected: {selected} GB</strong></p>
+        <p><small>All prices are monthly prices</small></p>
       </div>
     </div>
   );
