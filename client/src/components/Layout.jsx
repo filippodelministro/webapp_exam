@@ -334,7 +334,7 @@ function NewOrderLayout(props) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   // todo: check
-  // const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [minStorage, setMinStorage] = useState(1);
   const [minData, setMinData] = useState(1);
@@ -347,6 +347,11 @@ function NewOrderLayout(props) {
   const priceTier2 = cd?.priceTier2 || 0;
   const priceTier3 = cd?.priceTier3 || 0;
 
+  const simulateLoading = () => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+  };
 
   // Set default values when data arrives
   useEffect(() => {
@@ -404,7 +409,8 @@ function NewOrderLayout(props) {
     }
 
     //todo: check
-    // setLoading(true);
+    setLoading(true);
+    simulateLoading();
     try {
       const newOrder = { ramGb: selectedRam, storageTb: selectedStorage, dataGb: selectedData, totalPrice: totalPrice};
       const result = await API.createOrder(newOrder); 
@@ -412,6 +418,9 @@ function NewOrderLayout(props) {
       // Handle different statuses
       if (result.success) {
         setSuccess('Order created successfully!');
+        setTimeout(() => {
+          setSuccess(null);
+        }, 2000);
 
         setSelectedRam('');
         setSelectedStorage(minStorage);
@@ -434,6 +443,12 @@ function NewOrderLayout(props) {
     // }
   };
 
+  // useEffect(() => {
+  //   if (loading) {
+  //     simulateLoading();
+  //   }
+  // }, [loading]);
+
   return (
     <div className="new-order-form">
       <h4>Create New Order</h4>
@@ -448,9 +463,9 @@ function NewOrderLayout(props) {
               <Form.Label>RAM (GB)</Form.Label>
               <Form.Select value={selectedRam} onChange={e => setSelectedRam(e.target.value)}>
                   <optgroup key={"computation"} label={"Computation Service"}>
-                    <option key={ramTier1} value={ramTier1}>{ramTier1} GB - €{priceTier1}/month</option>
-                    <option key={ramTier2} value={ramTier2}>{ramTier2} GB - €{priceTier2}/month</option>
-                    <option key={ramTier3} value={ramTier3}>{ramTier3} GB - €{priceTier3}/month</option>
+                    <option key={ramTier1} value={ramTier1}>{ramTier1} GB</option>
+                    <option key={ramTier2} value={ramTier2}>{ramTier2} GB</option>
+                    <option key={ramTier3} value={ramTier3}>{ramTier3} GB</option>
                   </optgroup>
               </Form.Select>
               <Form.Text className="text-muted">Select one of the RAM size</Form.Text>
@@ -488,15 +503,22 @@ function NewOrderLayout(props) {
 
         {/* //todo: check with loading */}
         {/* <Button type="submit" disabled={loading}> */}
-        <Button 
+       <Button 
           type="submit" 
-          disabled={!availableRam || !availableStorage}
-        >
-          {(!availableRam || !availableStorage) 
-            ? 'Resources unavailable' 
-            : 'Create Order'
+          disabled={!availableRam || !availableStorage || loading}
+          variant="primary"  
+          >
+          {loading 
+            ? <>
+                <Spinner size="sm" className="me-2" />
+                Creating Order...
+              </>
+            : (!availableRam || !availableStorage) 
+              ? 'Resources unavailable' 
+              : 'Create Order'
           }
         </Button>
+
       </Form>
     </div>
   );
@@ -680,20 +702,21 @@ function GenericLayout(props) {
     }
   }, [props.loggedIn, props.loggedInTotp]);
 
-  // RAM availability (at least one instance available)
+  // check for RAM availability based on used computation instances
   useEffect(() => {
     if (computationData?.[0]?.maxInstances && cloudStatus?.usedComputation !== undefined) {
       setAvailableRam(cloudStatus.usedComputation < computationData[0].maxInstances);
-    } else {
-      setAvailableRam(true);
     }
+    // else {
+    //   setAvailableRam(true);
+    // }
   }, [cloudStatus?.usedComputation, computationData]);
 
   // Storage availability (used + selected <= max + RAM min requirements)
   useEffect(() => {
     let isStorageAvailable = true;
 
-    // Check global storage limit
+    // Check global storage limit based on overall used + selected storage
     if (storageData?.[0]?.maxGlobalStorage && cloudStatus?.usedStorage !== undefined) {
       const tot = cloudStatus.usedStorage + parseInt(selectedStorage || 1);
       isStorageAvailable = (tot <= storageData[0].maxGlobalStorage);
