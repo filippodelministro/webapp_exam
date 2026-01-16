@@ -191,9 +191,7 @@ function ComputationCard(props) {
       </table>
 
       {!availableRam && (
-        <Alert variant="warning" className="mt-2">
-          No computation instances available
-        </Alert>
+        <Alert variant="warning" className="mt-2">No computation instances available</Alert>
       )}
 
     </div>
@@ -251,9 +249,7 @@ function StorageCard(props) {
       <p><small>All prices are monthly prices</small></p>
 
       {!availableStorage && (
-        <Alert variant="warning" className="mt-2">
-          Storage limit reached or min storage not met
-        </Alert>
+        <Alert variant="warning" className="mt-2">Storage limit reached</Alert>
       )}
     </div>
   );
@@ -432,6 +428,11 @@ function NewOrderLayout(props) {
       } 
       else if (!result.success){
         setSuccess('Not enough resources for this order!');
+        // setSuccess('Order created successfully!');
+          if (onOrderChange) onOrderChange();
+          setTimeout(() => {
+            setSuccess(null);
+          }, 2000);
       }
     } catch (err) {
       console.error(err);
