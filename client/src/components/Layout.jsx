@@ -167,7 +167,7 @@ function computePrice(ramGb, storageTb, dataGb, computationData, storageData, da
 
 
 function ConfirmDialog(props) {
-  const { show, type, orderDetails, loading, onConfirm, onCancel } = props;
+  const { show, type, orderDetails, setLoading, onConfirm, onCancel } = props;
 
   const isDelete = type === "delete";
   const title = isDelete ? "Delete order" : "Create new order";
@@ -197,11 +197,12 @@ function ConfirmDialog(props) {
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={onCancel} disabled={loading}>
+        <Button variant="secondary" onClick={onCancel}>
           {cancelText}
         </Button>
-        <Button variant={variant} onClick={onConfirm} disabled={loading}>
-          {loading ? <Spinner size="sm" /> : confirmText}
+        <Button variant={variant} onClick={onConfirm} >
+          {confirmText}
+          {/* {loading ? <Spinner size="sm" /> : confirmText} */}
         </Button>
       </Modal.Footer>
     </Modal>
@@ -420,7 +421,7 @@ function NewOrderLayout(props) {
   const [minData, setMinData] = useState(1);
 
   const [showConfirm, setShowConfirm] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
+  // const [confirmLoading, setConfirmLoading] = useState(false);
 
   const cd = computationData?.[0];
   const ramTier1 = cd?.ramTier1 || 0;
@@ -477,7 +478,7 @@ function NewOrderLayout(props) {
 
 
   const confirmOrder = async () => {
-    setConfirmLoading(true);
+    // setConfirmLoading(true);
     try {
       const newOrder = { 
         ramGb: parseInt(selectedRam), 
@@ -495,17 +496,19 @@ function NewOrderLayout(props) {
         setSelectedStorage(minStorage);
         setSelectedData(minData);
         setTotalPrice(0);
-        if (props.onOrderChange) props.onOrderChange();
+        if (onOrderChange) onOrderChange();
       } else {
         setError('Not enough resources for this order!');
-        if (props.onOrderChange) props.onOrderChange();
+        if (onOrderChange) onOrderChange();
       }
     } catch (err) {
       console.error(err);
       setError('Failed to create order');
     } finally {
-      setConfirmLoading(false);
+      // setConfirmLoading(false);
       setShowConfirm(false);
+      simulateLoading();
+      // setLoading(false);
     }
   };
 
@@ -524,6 +527,7 @@ function NewOrderLayout(props) {
       return;
     }
 
+    setLoading(true);
     setShowConfirm(true);
     // setLoading(true);
     // simulateLoading();
@@ -640,7 +644,7 @@ function NewOrderLayout(props) {
           dataGb: selectedData, 
           totalPrice 
         }}
-        loading={confirmLoading}
+        loading={loading}
         onConfirm={confirmOrder}
         onCancel={() => setShowConfirm(false)}
       />
