@@ -329,7 +329,6 @@ function NewOrderLayout(props) {
   
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-  // todo: check
   const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [minStorage, setMinStorage] = useState(1);
@@ -404,7 +403,6 @@ function NewOrderLayout(props) {
       return;
     }
 
-    //todo: check
     setLoading(true);
     simulateLoading();
     try {
@@ -438,17 +436,7 @@ function NewOrderLayout(props) {
       console.error(err);
       setError('Failed to create order');
     }
-    //todo: check
-    // finally {
-    //   setLoading(false);
-    // }
   };
-
-  // useEffect(() => {
-  //   if (loading) {
-  //     simulateLoading();
-  //   }
-  // }, [loading]);
 
   return (
     <div className="new-order-form">
@@ -502,21 +490,23 @@ function NewOrderLayout(props) {
           </Col>
         </Row>
 
-        {/* //todo: check with loading */}
-        {/* <Button type="submit" disabled={loading}> */}
-       <Button 
+        <Button 
           type="submit" 
-          disabled={!availableRam || !availableStorage || loading}
+          disabled={!availableRam || !availableStorage || loading || parseInt(selectedStorage) < minStorage}
           variant="primary"  
-          >
+        >
           {loading 
             ? <>
                 <Spinner size="sm" className="me-2" />
                 Creating Order...
               </>
-            : (!availableRam || !availableStorage) 
-              ? 'Resources unavailable' 
-              : 'Create Order'
+            : !availableRam 
+              ? 'No RAM available'
+              : !availableStorage 
+                ? 'Storage limit reached'
+                : parseInt(selectedStorage) < minStorage
+                  ? 'Storage too low'
+                  : 'Create Order'
           }
         </Button>
 
