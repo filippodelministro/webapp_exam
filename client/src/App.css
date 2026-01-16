@@ -176,3 +176,13 @@
   border-radius: 0 10px 10px 0;
   border-left: 1px solid rgba(0,0,0,0.1);
 }
+
+
+
+.progress-bar-fill--darkblue { background: #1e3a8a; }  /* Dark blue */
+.progress-bar-fill--green { background: #10b981; }     /* Green */
+.progress-bar-fill--pink { background: #ec4899; }      /* Pink */
+
+/* .color-swatch.darkblue { background: #1e3a8a; }
+.color-swatch.green { background: #10b981; }
+.color-swatch.pink { background: #ec4899; } */

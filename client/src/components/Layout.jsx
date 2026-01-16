@@ -5,7 +5,7 @@ import { Link } from 'react-router';
 import { useEffect, useState } from 'react';
 import { Navigation } from './Navigation';
 import { LoginForm, TotpForm } from './Auth';
-import { computePrice, SHOW_MESSAGE_TIME } from './Utility.js';
+import { computePrice, SHOW_MESSAGE_TIME, MAX_DATATRANSFER_GB } from './Utility.js';
 import { ComputationCard, StorageCard, DataTransferCard, ConfirmDialog } from './Components.jsx';
 
 import API from '../API.js';
@@ -162,6 +162,11 @@ function NewOrderLayout(props) {
 
     if (selectedStorage < minStorage) {
       setError(`Storage must be at least ${minStorage} TB for ${selectedRam} GB RAM`);
+      return;
+    }
+
+    if(selectedData > MAX_DATATRANSFER_GB){
+      setError(`Data must be ${MAX_DATATRANSFER_GB} GB maximum`);
       return;
     }
 

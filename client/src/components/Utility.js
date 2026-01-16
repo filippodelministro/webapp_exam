@@ -1,12 +1,16 @@
 // ------- Some Utility functions and variables
 
+// Upper limit for data transfer not inserted in DB as not esplicitely specified in requirments;
+// Uses common-sense value to prevent excessively high DB insertions.
+const MAX_DATATRANSFER_GB = 5000;
+
 const SHOW_MESSAGE_TIME = 2000;
 
 
 // -- Pricing functions for each service
 function computeComputationPrice(ramGb, computationData) {
   const cd = computationData[0];
-  if (!cd) throw new Error("No computation service available");
+  if (!cd) return;
 
   let compPrice = 0;
   let minStorageRequired = 0;
@@ -33,14 +37,14 @@ function computeComputationPrice(ramGb, computationData) {
 
 function computeStoragePrice(storageTb, storageData) {
   const sd = storageData[0];
-  if (!sd) throw new Error("No storage service available");
+  if (!sd) return;
 
   return storageTb * sd.price;
 }
 
 function computeDataTransferPrice(dataGb, datatransferData) {
   const dtd = datatransferData[0];
-  if (!dtd) throw new Error("No data transfer service available");
+  if (!dtd) return;
 
   const base_price = dtd.base_price;
   const base_tier = dtd.base_tier;
@@ -48,6 +52,10 @@ function computeDataTransferPrice(dataGb, datatransferData) {
   const tier_mul1 = dtd.tier1_multiplier;
   const tier_mul2 = dtd.tier2_multiplier;
   let dataPrice = base_price;
+
+  // Upper limit for data transfer not inserted in DB as not esplicitely specified in requirments;
+  // Hard-coded check inserted solely to to prevent excessively high DB insertions.
+  if (dataGb > MAX_DATATRANSFER_GB) return 0;
 
   if (dataGb > base_tier && dataGb - base_tier <= tier1) {
     dataPrice += ((dataGb - base_tier) / base_tier) * (base_price * tier_mul1);
@@ -73,4 +81,4 @@ function computePrice(ramGb, storageTb, dataGb, computationData, storageData, da
   return totalPrice;
 }
 
-export { computePrice, computeComputationPrice, computeStoragePrice, computeDataTransferPrice, SHOW_MESSAGE_TIME };
+export { computePrice, computeComputationPrice, computeStoragePrice, computeDataTransferPrice, SHOW_MESSAGE_TIME, MAX_DATATRANSFER_GB };
