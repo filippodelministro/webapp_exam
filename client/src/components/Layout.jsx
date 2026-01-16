@@ -99,8 +99,85 @@ function computePrice(ramGb, storageTb, dataGb, computationData, storageData, da
   return totalPrice;
 }
 
+// function ConfirmDeleteOrderDialog(props) {
+//   const {show, loading, onConfirm, onCancel } = props;
+
+//   const title = "Delete order";
+//   const message = "Are you sure you want to delete this order?";
+//   const confirmText = "Yes, delete";
+//   const cancelText = "Cancel";
+//   const variant = "danger";
+
+//   return (
+//     <Modal show={show} onHide={onCancel} centered>
+//       <Modal.Header closeButton>
+//         <Modal.Title>{title}</Modal.Title>
+//       </Modal.Header>
+
+//       <Modal.Body>
+//         {message}
+//       </Modal.Body>
+
+//       <Modal.Footer>
+//         <Button variant="secondary" onClick={onCancel} disabled={loading}>
+//           {cancelText}
+//         </Button>
+
+//         <Button variant={variant} onClick={onConfirm} disabled={loading}>
+//           {loading ? <Spinner size="sm" /> : confirmText}
+//         </Button>
+//       </Modal.Footer>
+//     </Modal>
+//   );
+// }
+
+// function ConfirmDialog(props) {
+//   const {show, type, loading, onConfirm, onCancel } = props;
+
+//   const title = type === "delete" ? "Delete order" : "Create new order";
+//   const message = type === "delete" ? "Are you sure you want to delete this order?" : "Are you sure you want to create this order?";
+//   const confirmText = type === "delete" ? "Yes, delete" : "Yes, create";
+//   const cancelText = type === "delete" ? "Cancel" : "Cancel";
+//   const variant = "primary";
+
+//     return (
+//     <Modal show={show} onHide={onCancel} centered>
+//       <Modal.Header closeButton>
+//         <Modal.Title>{title}</Modal.Title>
+//       </Modal.Header>
+
+//       {/* section to show the order details if type === "create" */}
+
+//       <Modal.Body>
+//         {message}
+//       </Modal.Body>
+
+//       <Modal.Footer>
+//         <Button variant="secondary" onClick={onCancel} disabled={loading}>
+//           {cancelText}
+//         </Button>
+
+//         <Button variant={variant} onClick={onConfirm} disabled={loading}>
+//           {loading ? <Spinner size="sm" /> : confirmText}
+//         </Button>
+//       </Modal.Footer>
+//     </Modal>
+//   );
+// }
+
+
 function ConfirmDialog(props) {
-  const {show, title, message, confirmText, cancelText, variant, loading, onConfirm, onCancel } = props;
+  const { show, type, orderDetails, loading, onConfirm, onCancel } = props;
+
+  const isDelete = type === "delete";
+  const title = isDelete ? "Delete order" : "Create new order";
+  const message = isDelete 
+    ? "Are you sure you want to delete this order?"
+    : "Please confirm the order details:";
+  const confirmText = isDelete ? "Yes, delete" : "Yes, create";
+  const cancelText = "Cancel";
+  const variant = isDelete ? "danger" : "primary";
+
   return (
     <Modal show={show} onHide={onCancel} centered>
       <Modal.Header closeButton>
@@ -109,13 +186,20 @@ function ConfirmDialog(props) {
 
       <Modal.Body>
         {message}
+        {!isDelete && orderDetails && (
+          <div className="order-details mt-3">
+            <p><strong>RAM:</strong> {orderDetails.ramGb} GB</p>
+            <p><strong>Storage:</strong> {orderDetails.storageTb} TB</p>
+            <p><strong>Data Transfer:</strong> {orderDetails.dataGb} GB</p>
+            <p><strong>Total Price:</strong> €{orderDetails.totalPrice?.toFixed(2)}</p>
+          </div>
+        )}
       </Modal.Body>
 
       <Modal.Footer>
         <Button variant="secondary" onClick={onCancel} disabled={loading}>
           {cancelText}
         </Button>
-
         <Button variant={variant} onClick={onConfirm} disabled={loading}>
           {loading ? <Spinner size="sm" /> : confirmText}
         </Button>
@@ -123,6 +207,7 @@ function ConfirmDialog(props) {
     </Modal>
   );
 }
+
 
 
 // Component showing computation service info with static data and progress bar
@@ -334,6 +419,9 @@ function NewOrderLayout(props) {
   const [minStorage, setMinStorage] = useState(1);
   const [minData, setMinData] = useState(1);
 
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
   const cd = computationData?.[0];
   const ramTier1 = cd?.ramTier1 || 0;
   const ramTier2 = cd?.ramTier2 || 0;
@@ -388,6 +476,39 @@ function NewOrderLayout(props) {
   }, [selectedRam, selectedStorage, selectedData]);
 
 
+  const confirmOrder = async () => {
+    setConfirmLoading(true);
+    try {
+      const newOrder = { 
+        ramGb: parseInt(selectedRam), 
+        storageTb: parseInt(selectedStorage), 
+        dataGb: parseInt(selectedData), 
+        totalPrice: totalPrice 
+      };
+      const result = await API.createOrder(newOrder);
+
+      if (result.success) {
+        setSuccess('Order created successfully!');
+        setTimeout(() => setSuccess(null), 2000);
+        // Reset form
+        setSelectedRam('');
+        setSelectedStorage(minStorage);
+        setSelectedData(minData);
+        setTotalPrice(0);
+        if (props.onOrderChange) props.onOrderChange();
+      } else {
+        setError('Not enough resources for this order!');
+        if (props.onOrderChange) props.onOrderChange();
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to create order');
+    } finally {
+      setConfirmLoading(false);
+      setShowConfirm(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -403,39 +524,40 @@ function NewOrderLayout(props) {
       return;
     }
 
-    setLoading(true);
-    simulateLoading();
-    try {
-      const newOrder = { ramGb: selectedRam, storageTb: selectedStorage, dataGb: selectedData, totalPrice: totalPrice};
-      const result = await API.createOrder(newOrder); 
+    setShowConfirm(true);
+    // setLoading(true);
+    // simulateLoading();
+    // try {
+    //   const newOrder = { ramGb: selectedRam, storageTb: selectedStorage, dataGb: selectedData, totalPrice: totalPrice};
+    //   const result = await API.createOrder(newOrder); 
 
-      // Handle different statuses
-      if (result.success) {
-        setSuccess('Order created successfully!');
-        setTimeout(() => {
-          setSuccess(null);
-        }, 2000);
+    //   // Handle different statuses
+    //   if (result.success) {
+    //     setSuccess('Order created successfully!');
+    //     setTimeout(() => {
+    //       setSuccess(null);
+    //     }, 2000);
 
-        setSelectedRam('');
-        setSelectedStorage(minStorage);
-        setSelectedData(minData);
-        setTotalPrice(0);
+    //     setSelectedRam('');
+    //     setSelectedStorage(minStorage);
+    //     setSelectedData(minData);
+    //     setTotalPrice(0);
 
-        if (onOrderChange) 
-          onOrderChange(); 
-      } 
-      else if (!result.success){
-        setSuccess('Not enough resources for this order!');
-        // setSuccess('Order created successfully!');
-          if (onOrderChange) onOrderChange();
-          setTimeout(() => {
-            setSuccess(null);
-          }, 2000);
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Failed to create order');
-    }
+    //     if (onOrderChange) 
+    //       onOrderChange(); 
+    //   } 
+    //   else if (!result.success){
+    //     setSuccess('Not enough resources for this order!');
+    //     // setSuccess('Order created successfully!');
+    //       if (onOrderChange) onOrderChange();
+    //       setTimeout(() => {
+    //         setSuccess(null);
+    //       }, 2000);
+    //   }
+    // } catch (err) {
+    //   console.error(err);
+    //   setError('Failed to create order');
+    // }
   };
 
   return (
@@ -469,8 +591,6 @@ function NewOrderLayout(props) {
               <Form.Text className="text-muted">Minimum storage required: {minStorage} TB</Form.Text>
             </Form.Group>
           </Col> 
-
-
 
           {/* Data Transfer */}
           <Col md={3}>
@@ -511,6 +631,20 @@ function NewOrderLayout(props) {
         </Button>
 
       </Form>
+        <ConfirmDialog
+        show={showConfirm}
+        type="create"
+        orderDetails={{ 
+          ramGb: selectedRam, 
+          storageTb: selectedStorage, 
+          dataGb: selectedData, 
+          totalPrice 
+        }}
+        loading={confirmLoading}
+        onConfirm={confirmOrder}
+        onCancel={() => setShowConfirm(false)}
+      />
+      
     </div>
   );
 }
@@ -599,15 +733,12 @@ function OldOrderLayout (props){
         </table>
       )}
       <ConfirmDialog
-        show={showConfirm}
-        title="Delete order"
-        confirmText="Yes, delete"
-        cancelText="Cancel"
-        variant="danger"
-        message="Are you sure you want to delete this order?"
-        loading={cancelLoading}
-        onConfirm={confirmCancel}
-        onCancel={() => setShowConfirm(false)}/>
+  show={showConfirm}
+  type="delete"
+  loading={cancelLoading}
+  onConfirm={confirmCancel}
+  onCancel={() => setShowConfirm(false)}
+/>
       </div>
     
   );
