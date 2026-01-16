@@ -424,9 +424,9 @@ function NewOrderLayout(props) {
       }
       
       setMinStorage(minStor);
-      if (selectedStorage && parseInt(selectedStorage) < minStor) {
-        setSelectedStorage(minStor);
-      }
+      // if (selectedStorage && parseInt(selectedStorage) < minStor) {
+      //   setSelectedStorage(minStor);
+      // }
     }
 
     // console.log("computationData in NewOrderLayout: ", computationData);
@@ -436,11 +436,27 @@ function NewOrderLayout(props) {
     //   setAvailableSources(false);
 
     // Calculate total price based on selected options
+    // if (selectedRam && selectedStorage && selectedData && 
+    //     computationData && storageData && datatransferData) {
+    //   try {
+    //     const price = computePrice( parseInt(selectedRam),  parseInt(selectedStorage),  parseInt(selectedData),  computationData,  storageData,  datatransferData
+    //     );
+    //     setTotalPrice(price);
+    //   } catch (err) {
+    //     setTotalPrice(0);
+    //   }
+    // } else {
+    //   setTotalPrice(0);
+    // }
+  }, [selectedRam, computationData]);
+
+  // automatic price update when any relevant data changes
+  useEffect(() => {
     if (selectedRam && selectedStorage && selectedData && 
         computationData && storageData && datatransferData) {
       try {
-        const price = computePrice( parseInt(selectedRam),  parseInt(selectedStorage),  parseInt(selectedData),  computationData,  storageData,  datatransferData
-        );
+        const price = computePrice(parseInt(selectedRam), parseInt(selectedStorage), parseInt(selectedData), 
+          computationData, storageData, datatransferData);
         setTotalPrice(price);
       } catch (err) {
         setTotalPrice(0);
@@ -448,7 +464,7 @@ function NewOrderLayout(props) {
     } else {
       setTotalPrice(0);
     }
-  }, [selectedRam, selectedStorage, selectedData, computationData, storageData, datatransferData]);
+  }, [selectedRam, selectedStorage, selectedData]);
 
 
   const handleSubmit = async (e) => {
