@@ -8,6 +8,8 @@ import { LoginForm, TotpForm } from './Auth';
 
 import API from '../API.js';
 
+const SHOW_MESSAGE_TIME = 2000;
+
 function NotFoundLayout(props) {
   return (
     <>
@@ -99,84 +101,18 @@ function computePrice(ramGb, storageTb, dataGb, computationData, storageData, da
   return totalPrice;
 }
 
-// function ConfirmDeleteOrderDialog(props) {
-//   const {show, loading, onConfirm, onCancel } = props;
-
-//   const title = "Delete order";
-//   const message = "Are you sure you want to delete this order?";
-//   const confirmText = "Yes, delete";
-//   const cancelText = "Cancel";
-//   const variant = "danger";
-
-//   return (
-//     <Modal show={show} onHide={onCancel} centered>
-//       <Modal.Header closeButton>
-//         <Modal.Title>{title}</Modal.Title>
-//       </Modal.Header>
-
-//       <Modal.Body>
-//         {message}
-//       </Modal.Body>
-
-//       <Modal.Footer>
-//         <Button variant="secondary" onClick={onCancel} disabled={loading}>
-//           {cancelText}
-//         </Button>
-
-//         <Button variant={variant} onClick={onConfirm} disabled={loading}>
-//           {loading ? <Spinner size="sm" /> : confirmText}
-//         </Button>
-//       </Modal.Footer>
-//     </Modal>
-//   );
-// }
-
-// function ConfirmDialog(props) {
-//   const {show, type, loading, onConfirm, onCancel } = props;
-
-//   const title = type === "delete" ? "Delete order" : "Create new order";
-//   const message = type === "delete" ? "Are you sure you want to delete this order?" : "Are you sure you want to create this order?";
-//   const confirmText = type === "delete" ? "Yes, delete" : "Yes, create";
-//   const cancelText = type === "delete" ? "Cancel" : "Cancel";
-//   const variant = "primary";
-
-//     return (
-//     <Modal show={show} onHide={onCancel} centered>
-//       <Modal.Header closeButton>
-//         <Modal.Title>{title}</Modal.Title>
-//       </Modal.Header>
-
-//       {/* section to show the order details if type === "create" */}
-
-//       <Modal.Body>
-//         {message}
-//       </Modal.Body>
-
-//       <Modal.Footer>
-//         <Button variant="secondary" onClick={onCancel} disabled={loading}>
-//           {cancelText}
-//         </Button>
-
-//         <Button variant={variant} onClick={onConfirm} disabled={loading}>
-//           {loading ? <Spinner size="sm" /> : confirmText}
-//         </Button>
-//       </Modal.Footer>
-//     </Modal>
-//   );
-// }
-
-
+// Confirmation dialog for creating or deleting an order; messages are dynamic based on type
 function ConfirmDialog(props) {
   const { show, type, orderDetails, setLoading, onConfirm, onCancel } = props;
 
-  const isDelete = type === "delete";
-  const title = isDelete ? "Delete order" : "Create new order";
-  const message = isDelete 
-    ? "Are you sure you want to delete this order?"
-    : "Please confirm the order details:";
-  const confirmText = isDelete ? "Yes, delete" : "Yes, create";
+  const isCreate = (type === "create");
+  const title = isCreate ? "Create new order" : "Delete order";
+  const message = isCreate
+    ? "Please confirm the order details:"
+    : "Are you sure you want to delete this order?";
+  const confirmText = isCreate ? "Yes, create" : "Yes, delete";
   const cancelText = "Cancel";
-  const variant = isDelete ? "danger" : "primary";
+  const variant = isCreate ? "primary" : "danger";
 
   return (
     <Modal show={show} onHide={onCancel} centered>
@@ -186,7 +122,8 @@ function ConfirmDialog(props) {
 
       <Modal.Body>
         {message}
-        {!isDelete && orderDetails && (
+        {/* Show order details if creating an order, otherwise show delete confirmation */}
+        {isCreate && orderDetails && (
           <div className="order-details mt-3">
             <p><strong>RAM:</strong> {orderDetails.ramGb} GB</p>
             <p><strong>Storage:</strong> {orderDetails.storageTb} TB</p>
@@ -197,19 +134,12 @@ function ConfirmDialog(props) {
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={onCancel}>
-          {cancelText}
-        </Button>
-        <Button variant={variant} onClick={onConfirm} >
-          {confirmText}
-          {/* {loading ? <Spinner size="sm" /> : confirmText} */}
-        </Button>
+        <Button variant="secondary" onClick={onCancel}>{cancelText}</Button>
+        <Button variant={variant} onClick={onConfirm} >{confirmText}</Button>
       </Modal.Footer>
     </Modal>
   );
 }
-
-
 
 // Component showing computation service info with static data and progress bar
 /* progress bar colors:
@@ -326,11 +256,9 @@ function StorageCard(props) {
           ></div>
         )}
       </div>
-      
-      <p>
-        {Math.min(used + selected, maxGlobalStorage)}/{maxGlobalStorage} TB used
-      </p>
-      
+
+      <p>{Math.min(used + selected, maxGlobalStorage)}/{maxGlobalStorage} TB used</p>
+
       <p><strong>Price:</strong> €{price}/TB</p>
       <p><small>All prices are monthly prices</small></p>
 
@@ -355,7 +283,6 @@ function DataTransferCard(props) {
   const tier2_multiplier = dtd?.tier2_multiplier;
   const tier1Price = (basePrice * tier1_multiplier).toFixed(2);
   const tier2Price = (basePrice * tier2_multiplier).toFixed(2);
-  
 
   //todo: using 1000 as maximum value; change in all yellow if used + selected > 1000
   // calculate percentages for progress bar
@@ -388,7 +315,6 @@ function DataTransferCard(props) {
       <p><strong>Up to {tier1} GB:</strong> €{tier1Price}/GB</p>
       <p><strong>Above {tier1} GB:</strong> €{tier2Price}/GB</p>
       <p><small>All prices are monthly prices</small></p>
-
     </div>
   );
 }
@@ -405,7 +331,6 @@ function CloudStatusLayout(props) {
       <ComputationCard loggedIn={loggedIn} computationData={computationData} cloudStatus={cloudStatus} availableRam={availableRam}/>
       <StorageCard loggedIn={loggedIn} storageData={storageData} cloudStatus={cloudStatus} selectedStorage={selectedStorage} availableStorage={availableStorage}/>
       <DataTransferCard loggedIn={loggedIn} datatransferData={datatransferData} cloudStatus={cloudStatus} selectedData={selectedData}/>
-
     </div>
   );
 }
@@ -418,28 +343,20 @@ function NewOrderLayout(props) {
   const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [minStorage, setMinStorage] = useState(1);
-  const [minData, setMinData] = useState(1);
-
   const [showConfirm, setShowConfirm] = useState(false);
-  // const [confirmLoading, setConfirmLoading] = useState(false);
 
   const cd = computationData?.[0];
-  const ramTier1 = cd?.ramTier1 || 0;
-  const ramTier2 = cd?.ramTier2 || 0;
-  const ramTier3 = cd?.ramTier3 || 0;
-  const priceTier1 = cd?.priceTier1 || 0;
-  const priceTier2 = cd?.priceTier2 || 0;
-  const priceTier3 = cd?.priceTier3 || 0;
+  const ramTier1 = cd?.ramTier1 || 16;
+  const ramTier2 = cd?.ramTier2 || 32;
+  const ramTier3 = cd?.ramTier3 || 128;
 
   const simulateLoading = () => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 2000);
+    setTimeout(() => {setLoading(false);}, SHOW_MESSAGE_TIME);
   };
 
   // Set default values when data arrives
   useEffect(() => {
-    if (computationData) setSelectedRam(computationData[0].ramTier1 ?? 16);
+    if (computationData) setSelectedRam(ramTier1);
     if (storageData) setSelectedStorage(storageData[0].minStorage?? 1);
     if (datatransferData) setSelectedData(datatransferData[0].base_tier ?? 10);
   }, [computationData, storageData, datatransferData]);
@@ -451,22 +368,20 @@ function NewOrderLayout(props) {
       const ramValue = parseInt(selectedRam);
       
       switch (ramValue) {
-        case computationData[0]?.ramTier1: minStor = computationData[0].minStorageTier1 ?? 1; break;
-        case computationData[0]?.ramTier2: minStor = computationData[0].minStorageTier2 ?? 1; break;
-        case computationData[0]?.ramTier3: minStor = computationData[0].minStorageTier3 ?? 1; break;
+        case ramTier1: minStor = computationData[0].minStorageTier1 ?? 1; break;
+        case ramTier2: minStor = computationData[0].minStorageTier2 ?? 1; break;
+        case ramTier3: minStor = computationData[0].minStorageTier3 ?? 1; break;
       }
-      
       setMinStorage(minStor);
     }
   }, [selectedRam, computationData]);
 
-  // Update price based on selected options
+  // Update price based on selected options and prices from services
   useEffect(() => {
     if (selectedRam && selectedStorage && selectedData && 
         computationData && storageData && datatransferData) {
       try {
-        const price = computePrice(parseInt(selectedRam), parseInt(selectedStorage), parseInt(selectedData), 
-          computationData, storageData, datatransferData);
+        const price = computePrice(parseInt(selectedRam), parseInt(selectedStorage), parseInt(selectedData), computationData, storageData, datatransferData);
         setTotalPrice(price);
       } catch (err) {
         setTotalPrice(0);
@@ -477,8 +392,8 @@ function NewOrderLayout(props) {
   }, [selectedRam, selectedStorage, selectedData]);
 
 
+  // Once order is confirmed, create it via API and show success or error message
   const confirmOrder = async () => {
-    // setConfirmLoading(true);
     try {
       const newOrder = { 
         ramGb: parseInt(selectedRam), 
@@ -490,28 +405,28 @@ function NewOrderLayout(props) {
 
       if (result.success) {
         setSuccess('Order created successfully!');
-        setTimeout(() => setSuccess(null), 2000);
+        setTimeout(() => setSuccess(null), SHOW_MESSAGE_TIME);
         // Reset form
         setSelectedRam('');
         setSelectedStorage(minStorage);
-        setSelectedData(minData);
+        setSelectedData(10);
         setTotalPrice(0);
         if (onOrderChange) onOrderChange();
       } else {
         setError('Not enough resources for this order!');
+        setTimeout(() => setError(null), SHOW_MESSAGE_TIME);
         if (onOrderChange) onOrderChange();
       }
     } catch (err) {
-      console.error(err);
       setError('Failed to create order');
+      setTimeout(() => setError(null), SHOW_MESSAGE_TIME);
     } finally {
-      // setConfirmLoading(false);
       setShowConfirm(false);
       simulateLoading();
-      // setLoading(false);
     }
   };
 
+  // Handle form submission: validate inputs and show confirmation dialog
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -529,39 +444,6 @@ function NewOrderLayout(props) {
 
     setLoading(true);
     setShowConfirm(true);
-    // setLoading(true);
-    // simulateLoading();
-    // try {
-    //   const newOrder = { ramGb: selectedRam, storageTb: selectedStorage, dataGb: selectedData, totalPrice: totalPrice};
-    //   const result = await API.createOrder(newOrder); 
-
-    //   // Handle different statuses
-    //   if (result.success) {
-    //     setSuccess('Order created successfully!');
-    //     setTimeout(() => {
-    //       setSuccess(null);
-    //     }, 2000);
-
-    //     setSelectedRam('');
-    //     setSelectedStorage(minStorage);
-    //     setSelectedData(minData);
-    //     setTotalPrice(0);
-
-    //     if (onOrderChange) 
-    //       onOrderChange(); 
-    //   } 
-    //   else if (!result.success){
-    //     setSuccess('Not enough resources for this order!');
-    //     // setSuccess('Order created successfully!');
-    //       if (onOrderChange) onOrderChange();
-    //       setTimeout(() => {
-    //         setSuccess(null);
-    //       }, 2000);
-    //   }
-    // } catch (err) {
-    //   console.error(err);
-    //   setError('Failed to create order');
-    // }
   };
 
   return (
@@ -600,7 +482,7 @@ function NewOrderLayout(props) {
           <Col md={3}>
             <Form.Group>
               <Form.Label>Data Transfer (GB)</Form.Label>
-              <Form.Control type="number" min={minData} value={selectedData} onChange={e => setSelectedData(e.target.value)} placeholder={`Min ${minData} GB`}/>
+              <Form.Control type="number" min={1} value={selectedData} onChange={e => setSelectedData(e.target.value)} placeholder={`Min 1 GB`}/>
               <Form.Text className="text-muted">Amount of data transfer in GB</Form.Text>
             </Form.Group>
           </Col>
@@ -614,28 +496,24 @@ function NewOrderLayout(props) {
           </Col>
         </Row>
 
+      {/* Button disabled if resources are not available, if minStorage is not satisfied or if loading */}
         <Button 
           type="submit" 
           disabled={!availableRam || !availableStorage || loading || parseInt(selectedStorage) < minStorage}
           variant="primary"  
         >
           {loading 
-            ? <>
-                <Spinner size="sm" className="me-2" />
-                Creating Order...
-              </>
-            : !availableRam 
-              ? 'No RAM available'
-              : !availableStorage 
-                ? 'Storage limit reached'
-                : parseInt(selectedStorage) < minStorage
+            ? <><Spinner size="sm" className="me-2" />Creating Order...</>
+            : !availableRam ? 'No RAM available': 
+              !availableStorage ? 'Storage limit reached'
+                : (parseInt(selectedStorage) < minStorage)
                   ? 'Storage too low'
                   : 'Create Order'
           }
         </Button>
 
       </Form>
-        <ConfirmDialog
+      <ConfirmDialog
         show={showConfirm}
         type="create"
         orderDetails={{ 
@@ -646,9 +524,8 @@ function NewOrderLayout(props) {
         }}
         loading={loading}
         onConfirm={confirmOrder}
-        onCancel={() => setShowConfirm(false)}
+        onCancel={() => {setShowConfirm(false); setLoading(false);}}
       />
-      
     </div>
   );
 }
@@ -656,12 +533,11 @@ function NewOrderLayout(props) {
 function OldOrderLayout (props){
   const { loggedInTotp, orders, onOrderChange } = props;
 
-  const [error, setError] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
   const [cancelLoading, setCancelLoading] = useState(false);
 
-  // just show the confirm box
+  // show the confirm box
   const handleCancelClick = (orderId) => {
     if(loggedInTotp){
       setOrderToCancel(orderId);
@@ -678,7 +554,6 @@ function OldOrderLayout (props){
         if (onOrderChange) onOrderChange(); 
         setShowConfirm(false);
       } catch (err) {
-        console.error(err);
         alert("Failed to cancel order.");
       } finally {
         setCancelLoading(false);
@@ -686,8 +561,6 @@ function OldOrderLayout (props){
       }
     }
   };
-
-  if (error) return <p className="orders-error">{error}</p>;
 
   return (
     <div className="orders-container">
@@ -737,14 +610,13 @@ function OldOrderLayout (props){
         </table>
       )}
       <ConfirmDialog
-  show={showConfirm}
-  type="delete"
-  loading={cancelLoading}
-  onConfirm={confirmCancel}
-  onCancel={() => setShowConfirm(false)}
-/>
+        show={showConfirm}
+        type="delete"
+        loading={cancelLoading}
+        onConfirm={confirmCancel}
+        onCancel={() => setShowConfirm(false)}
+      />
       </div>
-    
   );
 }
 
@@ -753,7 +625,7 @@ function GenericLayout(props) {
   const [storageData, setStorageData] = useState([]);
   const [datatransferData, setDatatransferData] = useState([]);
   const [cloudStatus, setCloudStatus] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [genericLoading, setGenericLoading] = useState(true);
   const [error, setError] = useState(null);
   
   const [availableRam, setAvailableRam] = useState(true);
@@ -767,43 +639,45 @@ function GenericLayout(props) {
   const [selectedStorage, setSelectedStorage] = useState(1); 
   const [selectedData, setSelectedData] = useState(""); 
 
+  // get all the cloud data: not only CloudStatus, but also services configurations/options (prices, minStorage, ecc.)
   const fetchCloudData = async () => {
-      try {
-        const [computation, storage, datatransfer, status] = await Promise.all([
-          API.getComputationInfo(),
-          API.getStorageInfo(),
-          API.getDatatransferInfo(),
-          API.getCloudStatus(),
-        ]);
+    try {
+      const [computation, storage, datatransfer, status] = await Promise.all([
+        API.getComputationInfo(),
+        API.getStorageInfo(),
+        API.getDatatransferInfo(),
+        API.getCloudStatus(),
+      ]);
 
-        //for CloudStatusLayout
-        setComputationData(computation);
-        setStorageData(storage);
-        setDatatransferData(datatransfer);
-        setCloudStatus(status[0]);
-        
-        if(props.loggedIn || props.loggedInTotp){
-          // for NewOrderLayout 
-          setSelectedRam(computation[0]?.ramTier1 ?? "");
-          setSelectedStorage(storage[0]?.minStorageTbPerOrder ?? 1);
-          setSelectedData(datatransfer[0]?.base_tier ?? 1);
-        }
-        
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load cloud services info');
-      } finally {
-        setLoading(false);
+      //for CloudStatusLayout
+      setComputationData(computation);
+      setStorageData(storage);
+      setDatatransferData(datatransfer);
+      setCloudStatus(status[0]);
+      
+      // for NewOrderLayout 
+      if(props.loggedIn || props.loggedInTotp){
+        setSelectedRam(computation[0]?.ramTier1 ?? "");
+        setSelectedStorage(storage[0]?.minStorageTbPerOrder ?? 1);
+        setSelectedData(datatransfer[0]?.base_tier ?? 1);
       }
-    };
+      
+    } catch (err) {
+      setError('Failed to load cloud services info');
+    } finally {
+      setGenericLoading(false);
+    }
+  };
 
 
+  // get all the orders
   const fetchOrders = async () => {
     try {
       const fetched = await API.getOrders();
       setOrders(fetched);
-    } catch (err) {
-      console.error(err);
+    } 
+    catch (err) {
+      setError('Failed to fetch orders');
     }
   };
 
@@ -851,7 +725,7 @@ function GenericLayout(props) {
   }, [cloudStatus?.usedStorage, storageData, selectedRam, selectedStorage]);
 
 
-  if (loading) return <p>Loading cloud services info...</p>;
+  if (genericLoading) return <p>Loading cloud services info...</p>;
   if (error) return <p>{error}</p>;
 
   return (
@@ -918,6 +792,5 @@ function GenericLayout(props) {
     </>
   );
 }
-
 
 export { CloudStatusLayout, GenericLayout, NotFoundLayout, LoginLayout, TotpLayout };
