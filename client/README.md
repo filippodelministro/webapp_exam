@@ -127,4 +127,4 @@
             success: true
         }
     ```
-  - Codes: `201 Created`, `422 Unprocessable Content`, `401 Unauthorized`, `406 Not Acceptable`, `409 Conflict`, `500 Internal Server Error`
+  - Codes: `201 Created`, `500 Internal Server Error`

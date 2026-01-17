@@ -161,7 +161,6 @@ app.delete('/api/orders/:orderId', isLoggedIn, isTotp,
       }
       res.status(200).json({ deleted: changes });
     } catch (err) {
-      console.log(err); 
       res.status(503).json({ error: 'Server error' });
     }
   }
@@ -192,12 +191,10 @@ app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
     };
 
     try {
-      console.log(order);
       const result = await cloudDao.createOrder(order);
       res.status(201).json(result);
     } catch (err) {
-      console.error(err);
-      res.status(503).json({ error: 'Database error' });
+      res.status(500).json({ error: 'Database error' });
     }
   }
 );

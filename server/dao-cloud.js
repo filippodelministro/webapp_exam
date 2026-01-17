@@ -201,12 +201,10 @@ exports.createOrder = (order) => {
       // Check if there are enough resources
       // for computational instances only one order per time is allowed!
       if (availableComp <= 0) {
-        console.log("err for Comp");
         return resolve({ success: false });
       }
 
       if (availableStorage < order.storageTb) {
-        console.log("err for Storage");
         return resolve({ success: false });
       }
 
