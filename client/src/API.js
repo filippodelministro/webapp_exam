@@ -70,19 +70,33 @@ const getOrders = async () => {
   );
 };
 
-const deleteOrder = async (orderId) => {
-  const response = await fetch(
-    SERVER_URL + `orders/${orderId}`,
-    {
-      method: "DELETE",
-      credentials: "include",
-    }
-  );
+// const deleteOrder = async (orderId) => {
+//   const response = await fetch(
+//     SERVER_URL + `orders/${orderId}`,
+//     {
+//       method: "DELETE",
+//       credentials: "include",
+//     }
+//   );
 
-  if (!response.ok) {
-    throw new Error("Delete failed");
-  }
-};
+//   if (!response.ok) {
+//     throw new Error("Delete failed");
+//   }
+// };
+
+function deleteOrder(orderId) {
+  return fetch(SERVER_URL + `orders/${orderId}`, {
+    method: "DELETE",
+    credentials: "include",
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Delete failed");
+      }
+      return response; 
+    });
+}
+
 
 /**
  * This function creates a new order in the back-end.

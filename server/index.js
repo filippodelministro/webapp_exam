@@ -145,31 +145,18 @@ app.get('/api/orders', isLoggedIn, (req, res) => {
     );
 });
 
-app.delete("/api/orders/:orderId", async (req, res) => {
-  const orderId = req.params.orderId;
-
-  try {
-    await cloudDao.deleteOrders(orderId);
-    res.status(204).end(); 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Database error while deleting order" });
+app.delete('/api/orders/:orderId', isLoggedIn, isTotp,
+  [ check('orderId').isInt({min: 1}) ],
+  async (req, res) => {
+    try {
+      await cloudDao.deleteOrders(req.params.orderId);
+      res.status(200).end();
+    } catch (err) {
+      console.log(err);  // Logging errors is expecially useful while developing, to catch SQL errors etc.
+      res.status(503).json({ error: 'Database error' });
+    }
   }
-});
-
-// app.delete('/api/orders/:orderId', isLoggedIn, isTotp,
-//   [ check('orderId').isInt({min: 1}) ],
-//   async (req, res) => {
-//     try {
-//       await cloudDao.delesteOrders(req.params.orderId);
-//       res.status(200).end();
-//     } catch (err) {
-//       console.log(err);  // Logging errors is expecially useful while developing, to catch SQL errors etc.
-//       res.status(503).json({ error: 'Database error' });
-//     }
-//   }
-// );
-
+);
 
 // POST /api/new-orders
 app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
