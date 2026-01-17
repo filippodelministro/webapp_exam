@@ -56,22 +56,24 @@ function ComputationCard(props) {
         )}
       </div>
 
-      <p>{showNextInstance ? displayUsed : used}/{maxInstances} used</p>
-      
-      <table className="service-table">
-        <thead>
-          <tr><th>RAM</th><th>Price</th><th>Min Storage</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>{ramTier1}GB</td><td>{priceTier1}€/month</td><td>{minStorageTier1 != null ? `${minStorageTier1} TB` : '-'}</td></tr>
-          <tr><td>{ramTier2}GB</td><td>{priceTier2}€/month</td><td>{minStorageTier2 != null ? `${minStorageTier2} TB` : '-'}</td></tr>
-          <tr><td>{ramTier3}GB</td><td>{priceTier3}€/month</td><td>{minStorageTier3 != null ? `${minStorageTier3} TB` : '-'}</td></tr>
-        </tbody>
-      </table>
-
       {!availableRam && (
         <Alert variant="warning" className="mt-2">No computation instances available</Alert>
       )}
+      
+      <div className="static-info-section">
+        <p>{showNextInstance ? displayUsed : used}/{maxInstances} used</p>
+        <table className="service-table">
+          <thead>
+            <tr><th>RAM</th><th>Price</th><th>Min Storage</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>{ramTier1}GB</td><td>{priceTier1}€/month</td><td>{minStorageTier1 != null ? `${minStorageTier1} TB` : '-'}</td></tr>
+            <tr><td>{ramTier2}GB</td><td>{priceTier2}€/month</td><td>{minStorageTier2 != null ? `${minStorageTier2} TB` : '-'}</td></tr>
+            <tr><td>{ramTier3}GB</td><td>{priceTier3}€/month</td><td>{minStorageTier3 != null ? `${minStorageTier3} TB` : '-'}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
 
     </div>
   );
@@ -119,15 +121,16 @@ function StorageCard(props) {
           ></div>
         )}
       </div>
-
-      <p>{Math.min(used + selected, maxGlobalStorage)}/{maxGlobalStorage} TB used</p>
-
-      <p><strong>Price:</strong> €{price}/TB</p>
-      <p><small>All prices are monthly prices</small></p>
-
       {!availableStorage && (
         <Alert variant="warning" className="mt-2">Storage limit reached</Alert>
       )}
+
+      <div className="static-info-section">
+        <p>{Math.min(used + selected, maxGlobalStorage)}/{maxGlobalStorage} TB used</p>
+        <p><strong>Price:</strong> €{price}/TB</p>
+        <p><small>All prices are monthly prices</small></p>
+      </div>
+
     </div>
   );
 }
@@ -230,7 +233,7 @@ function DataTransferCard(props) {
         </div>
       )}
 
-      <div className="total-section" style={{marginTop:'24px',paddingTop:'16px',borderTop:'1px solid #eee'}}>
+      <div className="static-info-section">
         <p>{used} GB used</p>
         <p><strong>Base tier:</strong> (up to {base_tier} GB): €{basePrice}/GB</p>
         <p><strong>Tier 1:</strong> (up to {tier1} GB): €{tier1Price}/GB</p>
