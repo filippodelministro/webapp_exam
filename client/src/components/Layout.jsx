@@ -43,7 +43,7 @@ function TotpLayout(props) {
 }
 
 function CloudStatusLayout(props) {
-  const { loggedIn, computationData, storageData, datatransferData, cloudStatus, selectedRam, selectedStorage, selectedData, availableRam, availableStorage } = props;
+  const { loggedIn, computationData, storageData, datatransferData, cloudStatus, selectedStorage, selectedData, availableRam, availableStorage } = props;
 
   if (!computationData || !storageData || !datatransferData || !cloudStatus) {
     return <p>Loading cloud services info...</p>;
@@ -59,7 +59,7 @@ function CloudStatusLayout(props) {
 }
 
 function NewOrderLayout(props) {
-  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData, availableRam, availableStorage, setSuccess, setAvailableRam, setAvailableStorage, setError, loading, setLoading, simulateLoading, cloudStatus } = props;
+  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData, availableRam, availableStorage, setSuccess, setError, loading, setLoading, simulateLoading } = props;
   
   const [totalPrice, setTotalPrice] = useState(0);
   const [minStorage, setMinStorage] = useState(1);
@@ -69,43 +69,6 @@ function NewOrderLayout(props) {
   const ramTier1 = cd?.ramTier1 || 16;
   const ramTier2 = cd?.ramTier2 || 32;
   const ramTier3 = cd?.ramTier3 || 128;
-
-  // Set default values when data arrives
-  // useEffect(() => {
-  //   if (computationData) setSelectedRam(ramTier1);
-  //   if (storageData) setSelectedStorage(storageData[0].minStorage?? 1);
-  //   if (datatransferData) setSelectedData(1);
-  // }, [computationData, storageData, datatransferData]);
-
-  // Update minStorage based on selected RAM
-  // useEffect(() => {
-  //   if (selectedRam && computationData) {
-  //     let minStor = 1;
-  //     const ramValue = parseInt(selectedRam);
-      
-  //     switch (ramValue) {
-  //       case ramTier1: minStor = computationData[0].minStorageTier1 ?? 1; break;
-  //       case ramTier2: minStor = computationData[0].minStorageTier2 ?? 1; break;
-  //       case ramTier3: minStor = computationData[0].minStorageTier3 ?? 1; break;
-  //     }
-  //     setMinStorage(minStor);
-  //   }
-  // }, [selectedRam, computationData]);
-
-  // Update price based on selected options and prices from services
-  // useEffect(() => {
-  //   if (selectedRam && selectedStorage && selectedData && 
-  //       computationData && storageData && datatransferData) {
-  //     try {
-  //       const price = computePrice(parseInt(selectedRam), parseInt(selectedStorage), parseInt(selectedData), computationData, storageData, datatransferData);
-  //       setTotalPrice(price);
-  //     } catch (err) {
-  //       setTotalPrice(0);
-  //     }
-  //   } else {
-  //     setTotalPrice(0);
-  //   }
-  // }, [selectedRam, selectedStorage, selectedData]);
 
   // Update minStorage and price based on selected options
   useEffect(() => {
@@ -123,20 +86,19 @@ function NewOrderLayout(props) {
     }
 
     // Update price when all required data is available
-    if (selectedRam && selectedStorage && selectedData && 
-        computationData && storageData && datatransferData) {
+    if (selectedRam && selectedStorage && selectedData) {
       try {
         const price = computePrice( parseInt(selectedRam), parseInt(selectedStorage), parseInt(selectedData), computationData, storageData, datatransferData);
-        setTotalPrice(price);
+        if(availableStorage)
+          setTotalPrice(price);
       } catch (err) {
         setTotalPrice(0);
       }
     } else {
       setTotalPrice(0);
     }
-  }, [computationData, storageData, datatransferData, selectedRam, selectedStorage, selectedData]);
-
-
+  // }, [computationData, storageData, datatransferData, selectedRam, selectedStorage, selectedData]);
+  }, [selectedRam, selectedStorage, selectedData]);
 
   // Once order is confirmed, create it via API and show success or error message
   const confirmOrder = async () => {
@@ -278,7 +240,7 @@ function NewOrderLayout(props) {
 }
 
 function OldOrderLayout (props){
-  const { loggedInTotp, orders, onOrderChange, success, setSuccess, error, setError, loading, setLoading, simulateLoading} = props;
+  const { loggedInTotp, orders, onOrderChange, setSuccess, setError, loading, setLoading, simulateLoading} = props;
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
@@ -367,9 +329,8 @@ function OldOrderLayout (props){
         type="delete"
         onConfirm={confirmCancel}
         onCancel={() => { setShowConfirm(false); setLoading(false); }} 
-        
       />
-      </div>
+    </div>
   );
 }
 
@@ -387,10 +348,10 @@ function GenericLayout(props) {
   const [availableRam, setAvailableRam] = useState(true);
   const [availableStorage, setAvailableStorage] = useState(true);
 
-  // permit dynamic changes in the list of orders while the user add or delete orders
+  // permit dynamic changes in OldOrderLayout while the user add (via NewOrderLayout) or delete orders (via OldOrderLayout)
   const [orders, setOrders] = useState([]);
 
-  // permit dynamic changes in the cloudStatus while user changes value in NewOrderLayout
+  // permit dynamic changes in CloudStatusLayout while user changes value via NewOrderLayout
   const [selectedRam, setSelectedRam] = useState(""); 
   const [selectedStorage, setSelectedStorage] = useState(1); 
   const [selectedData, setSelectedData] = useState(""); 
@@ -400,7 +361,7 @@ function GenericLayout(props) {
     setTimeout(() => {setLoading(false);}, SHOW_MESSAGE_TIME);
   };
   
-  // Errors and success show for 2 seconds
+  // Errors and Success show for 2 seconds
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => setSuccess(null), SHOW_MESSAGE_TIME);
@@ -454,12 +415,7 @@ function GenericLayout(props) {
     }
   };
 
-  // update the cloudStatus (in any case; no need to be logged in)
-  // useEffect(() => {
-  //   fetchCloudData();
-  // }, []); 
-
-  // fetch orders only when logged in
+  // prepare data after login/logout
   useEffect(() => {
     fetchCloudData()
 
@@ -474,32 +430,15 @@ function GenericLayout(props) {
     
   }, [props.loggedIn, props.loggedInTotp]);
   
-  // reset selected values once the user logout
-  // useEffect(() => {
-  //   if (!props.loggedIn && !props.loggedInTotp) {
-  //     setSelectedRam("");
-  //     setSelectedStorage("");
-  //     setSelectedData("");
-  //   }
-  // }, [props.loggedIn, props.loggedInTotp]);
-
-  // check for RAM availability based on used computation instances
-  // useEffect(() => {
-  //   if (computationData?.[0]?.maxInstances && cloudStatus?.usedComputation !== undefined) {
-  //     setAvailableRam(cloudStatus.usedComputation < computationData[0].maxInstances);
-  //   }
-  // }, [cloudStatus?.usedComputation, computationData]);
-
   // Check for check for RAM and storage availability based on used resources
   // (used + selected <= max + RAM min requirements)
   useEffect(() => {
-    if (computationData?.[0]?.maxInstances && cloudStatus?.usedComputation !== undefined)
+    if(cloudStatus?.usedComputation && computationData?.[0].maxInstances)
       setAvailableRam(cloudStatus.usedComputation < computationData[0].maxInstances);
 
-    let isStorageAvailable = true;
-
     // Check global storage limit based on overall used + selected storage
-    if (storageData?.[0]?.maxGlobalStorage && cloudStatus?.usedStorage !== undefined) {
+    let isStorageAvailable = true;
+    if (cloudStatus?.usedStorage && storageData?.[0]?.maxGlobalStorage) {
       const tot = cloudStatus.usedStorage + parseInt(selectedStorage || 1);
       isStorageAvailable = (tot <= storageData[0].maxGlobalStorage);
     }
@@ -525,7 +464,6 @@ function GenericLayout(props) {
             storageData={storageData}
             datatransferData={datatransferData}
             cloudStatus={cloudStatus}
-            selectedRam={selectedRam}
             selectedStorage={selectedStorage}
             selectedData={selectedData}
             availableRam={availableRam}
@@ -545,16 +483,13 @@ function GenericLayout(props) {
             storageData={storageData}
             datatransferData={datatransferData}
             selectedRam={selectedRam}
-            cloudStatus={cloudStatus}
             setSelectedRam={setSelectedRam}
             selectedStorage={selectedStorage}
             setSelectedStorage={setSelectedStorage}
             selectedData={selectedData}
             setSelectedData={setSelectedData}
             availableRam={availableRam}
-            setAvailableRam={setAvailableRam}
             availableStorage={availableStorage}
-            setAvailableStorage={setAvailableStorage}
             success={success}
             setSuccess={setSuccess}
             error={error}
@@ -572,9 +507,7 @@ function GenericLayout(props) {
             loggedIn={props.loggedIn}
             loggedInTotp={props.loggedInTotp}
             orders={orders}
-            success={success}
             setSuccess={setSuccess}
-            error={error}
             setError={setError}
             loading={loading}
             setLoading={setLoading}
