@@ -32,9 +32,8 @@ function getJson(httpResponsePromise) {
 
 /*** Cloud API calls ***/
 
-/**
- * Retrieves all the computation information (config info, prices, options, ecc.) from the server.
- */
+
+// Retrieves all the computation information (config info, prices, options, ecc.) from the server.
 const getComputationInfo = async () => {
   const data = await getJson(
     fetch(SERVER_URL + 'computation-info', { credentials: 'include' })
@@ -42,9 +41,8 @@ const getComputationInfo = async () => {
   return data;
 };
 
-/**
- * Retrieves storage (config info, prices, options, ecc.) information from the server.
- */
+
+// Retrieves storage (config info, prices, options, ecc.) information from the server.
 const getStorageInfo = async () => {
   const data = await getJson(
     fetch(SERVER_URL + 'storage-info', { credentials: 'include' })
@@ -52,9 +50,8 @@ const getStorageInfo = async () => {
   return data;
 };
 
-/**
- * Retrieves datatransfer (config info, prices, options, ecc.) information from the server.
- */
+
+// Retrieves datatransfer (config info, prices, options, ecc.) information from the server.
 const getDatatransferInfo = async () => {
   const data = await getJson(
     fetch(SERVER_URL + 'datatransfer-info', { credentials: 'include' })
@@ -62,9 +59,8 @@ const getDatatransferInfo = async () => {
   return data;
 };
 
-/**
- * Retrieves cloud status (used resources depending on the orders)
- */
+
+// Retrieves cloud status (used resources depending on the orders)
 const getCloudStatus = async () => {
   const data = await getJson(
     fetch(SERVER_URL + 'cloud-info', { credentials: 'include' })
@@ -72,18 +68,16 @@ const getCloudStatus = async () => {
   return data;
 };
 
-/**
- * Retrieves the list of orders from the server.
- */
+
+// Retrieves the list of orders from the server.
 const getOrders = async () => {
   return getJson(
     fetch(SERVER_URL + 'orders', { credentials: 'include' })
   );
 };
 
-/**
- * Deletes a specific order from DB by passing orderId.
- */
+
+// Deletes a specific order from DB by passing orderId.
 function deleteOrder(orderId) {
   return fetch(SERVER_URL + `orders/${orderId}`, {
     method: "DELETE",
@@ -97,9 +91,8 @@ function deleteOrder(orderId) {
     });
 }
 
-/**
- * Creates a new order in DB.
- */
+
+// Creates a new order in DB.
 function createOrder(order) {
   return getJson(
     fetch(SERVER_URL + 'new-orders/', {

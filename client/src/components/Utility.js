@@ -1,4 +1,4 @@
-// ------- Some Utility functions and variables
+// ------- Some Utility functions and global variables
 
 // Upper limit for data transfer not inserted in DB as not esplicitely specified in requirments;
 // Uses common-sense value to prevent excessively high DB insertions.

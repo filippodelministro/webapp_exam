@@ -2,6 +2,8 @@
 import { Button, Alert, Modal } from 'react-bootstrap';
 
 import { MAX_DATATRANSFER_GB } from './Utility';
+
+
 // -------- Component showing computation service info with static data and progress bar
 /* progress bar colors:
   - red if no storage available
@@ -239,8 +241,6 @@ function DataTransferCard(props) {
     </div>
   );
 }
-
-
 
 // --------Confirmation dialog for creating or deleting an order; messages are dynamic based on type
 function ConfirmDialog(props) {
