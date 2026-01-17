@@ -93,7 +93,7 @@ function createOrder(order) {
       method: 'POST',
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json', // tells the server we're sending JSON
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(order) // send the order data
     })

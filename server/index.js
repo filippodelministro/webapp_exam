@@ -62,7 +62,7 @@ passport.deserializeUser(function (user, callback) { // this user is id + email 
 const session = require('express-session');
 
 app.use(session({
-  secret: "shhhhh... it's a secret! - change it for the exam!",
+  secret: "xK7pL9mN2qR5tV8wY1zA4bC6dE8fG0hJ3kM",
   resave: false,
   saveUninitialized: false,
 }));
@@ -138,9 +138,7 @@ app.get('/api/cloud-info', (req, res) => {
 
 // GET /api/orders
 app.get('/api/orders', isLoggedIn, (req, res) => {
-  const email = req.user.username;
-
-  cloudDao.getOrders(email)
+  cloudDao.getOrders(req.user.id)
     .then((orders) => res.json(orders))
     .catch(() =>
       res.status(500).json({ error: 'Error retrieving orders' })
@@ -159,12 +157,26 @@ app.delete("/api/orders/:orderId", async (req, res) => {
   }
 });
 
+// app.delete('/api/orders/:orderId', isLoggedIn, isTotp,
+//   [ check('orderId').isInt({min: 1}) ],
+//   async (req, res) => {
+//     try {
+//       await cloudDao.delesteOrders(req.params.orderId);
+//       res.status(200).end();
+//     } catch (err) {
+//       console.log(err);  // Logging errors is expecially useful while developing, to catch SQL errors etc.
+//       res.status(503).json({ error: 'Database error' });
+//     }
+//   }
+// );
+
+
 // POST /api/new-orders
 app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
   [
     check('ramGb').isInt({ min: 1 }),
-    check('storageTb').isInt({ min: 0.1 }),
-    check('dataGb').isInt({ min: 0 }),
+    check('storageTb').isInt({ min: 1 }),
+    check('dataGb').isInt({ min: 1 }),
     check('totalPrice').isFloat({ min: 1 }),
   ],
   async (req, res) => {
@@ -174,14 +186,17 @@ app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
     }
 
     const order = {
+      userId: req.user.id,
       ramGb: req.body.ramGb,
       storageTb: req.body.storageTb,
       dataGb: req.body.dataGb,
-      total_price: req.body.totalPrice,
-      email: req.user.username,
+      total_price: req.body.totalPrice
     };
 
+    console.log("index:", order);
+
     try {
+      console.log(order);
       const result = await cloudDao.createOrder(order);
       res.status(201).json(result);
     } catch (err) {

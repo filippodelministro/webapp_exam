@@ -136,15 +136,15 @@ const convertListOrdersFromDbRecord = (dbRecord) => {
 
   return listOrders;
 }
-exports.getOrders = (email) => {
+exports.getOrders = (userId) => {
     return new Promise((resolve, reject) => {
         const sql = `
           select order_id, timestamp, ram_gb, storage_tb, data_gb, total_price
-          from orders o inner join users u on o.user_id = u.user_id
-          where u.email = ?
+          from orders
+          where user_id = ?
         `;
 
-        db.all(sql, [email], (err, rows) => {
+        db.all(sql, [userId], (err, rows) => {
             if (err) {
                 reject(err);
             } else {
@@ -175,55 +175,46 @@ exports.deleteOrders = (orderId) => {
 
 exports.createOrder = (order) => {
   return new Promise((resolve, reject) => {
-    const getUser = `SELECT user_id FROM users WHERE email = ?`;
 
-    db.get(getUser, [order.email], (err, row) => {
+    // Check available resources (keeping exactly the same logic)
+    const checkResources = `
+      SELECT 
+        COALESCE((SELECT max_instances FROM computation), 10) - COUNT(o.order_id) AS availableComp,
+        COALESCE((SELECT max_gloabl_storage FROM storage), 1000) - COALESCE(SUM(o.storage_tb), 0) AS availableStorage
+      FROM orders o
+    `;
+
+    db.get(checkResources, [], (err, resources) => {
       if (err) return reject(err);
-      if (!row) return reject(new Error('User not found'));
+      
+      const availableComp = resources.availableComp ?? 0;
+      const availableStorage = resources.availableStorage ?? 0;
+      
+      // Check if there are enough resources
+      // for computational instances only one order per time is allowed!
+      if (availableComp <= 0) {
+        console.log("err for Comp");
+        return resolve({ success: false });
+      }
 
-      const userId = row.user_id;
+      if (availableStorage < order.storageTb) {
+        console.log("err for Storage");
+        return resolve({ success: false });
+      }
 
-      // Check available resources
-        const checkResources = `
-        SELECT 
-          COALESCE((SELECT max_instances FROM computation), 10) - COUNT(o.order_id) AS availableComp,
-          COALESCE((SELECT max_gloabl_storage FROM storage), 1000) - COALESCE(SUM(o.storage_tb), 0) AS availableStorage
-        FROM orders o
+      // Insert the order if resources are sufficient
+      const insert = `
+        INSERT INTO orders (user_id, ram_gb, storage_tb, data_gb, total_price)
+        VALUES (?, ?, ?, ?, ?)
       `;
 
-      db.get(checkResources, [], (err, resources) => {
-        if (err) return reject(err);
-        
-        const availableComp = resources.availableComp ?? 0;
-        const availableStorage = resources.availableStorage ?? 0;
-        
-        // Check if there are enough resources
-        // for computational instances only one order per time is allowed!
-        if (availableComp <= 0) {
-          console.log("err for Comp");
-          return resolve({ success: false});
+      db.run(
+        insert, [order.userId, order.ramGb, order.storageTb, order.dataGb, order.total_price],
+        function (err) {
+          if (err) return reject(err);
+          resolve({ success: true });
         }
-
-        if (availableStorage < order.storageTb) {
-          console.log("err for Storage");
-          return resolve({ success: false });
-        }
-
-        // Insert the order if resources are sufficient
-        const insert = `
-          INSERT INTO orders (user_id, ram_gb, storage_tb, data_gb, total_price)
-          VALUES (?, ?, ?, ?, ?)
-        `;
-
-        db.run(
-          insert, [userId, order.ramGb, order.storageTb, order.dataGb, order.total_price],
-          function (err) {
-            if (err) return reject(err);
-
-            resolve({ success: true});
-          }
-        );
-      });
+      );
     });
   });
 };

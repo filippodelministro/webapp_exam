@@ -10,14 +10,14 @@ DROP TABLE IF EXISTS "orders";
 -- USERS
 --------------------------------------------------
 CREATE TABLE IF NOT EXISTS "users" (
-    "user_id" INTEGER PRIMARY KEY AUTOINCREMENT,
-    "email" TEXT NOT NULL UNIQUE,
-    "name" TEXT,
-    "hash" TEXT NOT NULL,
-    "salt" TEXT NOT NULL,
-    "secret" TEXT
+	"id"	INTEGER NOT NULL,
+	"email"	TEXT NOT NULL,
+	"name"	TEXT,
+	"hash"	TEXT NOT NULL,
+	"salt"	TEXT NOT NULL,
+	"secret" TEXT,
+	PRIMARY KEY("id" AUTOINCREMENT)
 );
-
 -- todo: change hash and salt for user4
 INSERT INTO "users" VALUES
 (1,'u1@p.it','John','15d3c4fca80fa608dcedeb65ac10eff78d20c88800d016369a3d2963742ea288','72e4eeb14def3b21','LXBSMDTMSP2I5XFXIYRGFVWSFI'),
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS "orders" (
     "storage_tb" INTEGER NOT NULL,
     "data_gb" INTEGER NOT NULL,
     "total_price" REAL NOT NULL,
-    FOREIGN KEY ("user_id") REFERENCES "users"("user_id")
+    FOREIGN KEY ("user_id") REFERENCES "users"("id")
 );
 
 INSERT INTO "orders" ("user_id","ram_gb","storage_tb","data_gb", "total_price") VALUES
