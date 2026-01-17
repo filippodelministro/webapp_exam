@@ -192,9 +192,12 @@ app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
     };
 
     try {
-      console.log(order);
       const result = await cloudDao.createOrder(order);
-      res.status(201).json(result);
+      console.log(result);
+      if(result)
+        res.status(200).json(result);
+      else
+        res.status(203).json(result);
     } catch (err) {
       console.error(err);
       res.status(503).json({ error: 'Database error' });

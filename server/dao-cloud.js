@@ -202,12 +202,12 @@ exports.createOrder = (order) => {
       // for computational instances only one order per time is allowed!
       if (availableComp <= 0) {
         console.log("err for Comp");
-        return resolve({ success: false });
+        return resolve(false);
       }
 
       if (availableStorage < order.storageTb) {
         console.log("err for Storage");
-        return resolve({ success: false });
+        return resolve(false);
       }
 
       // Insert the order if resources are sufficient
@@ -220,7 +220,7 @@ exports.createOrder = (order) => {
         insert, [order.userId, order.ramGb, order.storageTb, order.dataGb, order.total_price],
         function (err) {
           if (err) return reject(err);
-          resolve({ success: true });
+          resolve(true);
         }
       );
     });

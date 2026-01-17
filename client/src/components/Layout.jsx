@@ -126,7 +126,7 @@ function NewOrderLayout(props) {
       };
       const result = await API.createOrder(newOrder);
 
-      if (result.success) {
+      if (result) {
         setSuccess('Order created successfully!');
         setTimeout(() => setSuccess(null), SHOW_MESSAGE_TIME);
         // Reset form
@@ -134,11 +134,11 @@ function NewOrderLayout(props) {
         setSelectedStorage(minStorage);
         setSelectedData(1);
         setTotalPrice(0);
-        if (onOrderChange) onOrderChange();
+        // if (onOrderChange) onOrderChange();
       } else {
         setError('Not enough resources for this order!');
         setTimeout(() => setError(null), SHOW_MESSAGE_TIME);
-        if (onOrderChange) onOrderChange();
+        // if (onOrderChange) onOrderChange();
       }
     } catch (err) {
       setError('Failed to create order');
@@ -146,6 +146,7 @@ function NewOrderLayout(props) {
     } finally {
       setShowConfirm(false);
       simulateLoading();
+      if (onOrderChange) onOrderChange();
     }
   };
 
