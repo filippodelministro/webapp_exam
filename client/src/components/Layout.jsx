@@ -61,9 +61,6 @@ function CloudStatusLayout(props) {
 function NewOrderLayout(props) {
   const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData, availableRam, availableStorage, success, setSuccess, error, setError, loading, setLoading, simulateLoading, cloudStatus } = props;
   
-  // const [error, setError] = useState(null);
-  // const [success, setSuccess] = useState(null);
-  // const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [minStorage, setMinStorage] = useState(1);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -72,10 +69,6 @@ function NewOrderLayout(props) {
   const ramTier1 = cd?.ramTier1 || 16;
   const ramTier2 = cd?.ramTier2 || 32;
   const ramTier3 = cd?.ramTier3 || 128;
-
-  // const simulateLoading = () => {
-  //   setTimeout(() => {setLoading(false);}, SHOW_MESSAGE_TIME);
-  // };
 
   // Set default values when data arrives
   useEffect(() => {
@@ -152,8 +145,6 @@ function NewOrderLayout(props) {
   // Handle form submission: validate inputs and show confirmation dialog
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // setError(null);
-    // setSuccess(null);
 
     if (!selectedRam || !selectedStorage || !selectedData) {
       setError('Please fill in all fields');
@@ -177,8 +168,6 @@ function NewOrderLayout(props) {
   return (
     <div className="new-order-form">
       <h4>Create New Order</h4>
-      {/* {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>} */}
 
       <Form onSubmit={handleSubmit}>
         <Row className="mb-3">
@@ -263,7 +252,6 @@ function OldOrderLayout (props){
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
-  // const [cancelLoading, setCancelLoading] = useState(false);
 
   // show the confirm box
   const handleCancelClick = (orderId) => {
@@ -277,7 +265,6 @@ function OldOrderLayout (props){
   // actually perform the deletion of the order if properly logged in
   const confirmCancel = async () => {
     if(loggedInTotp){
-      // setCancelLoading(true);
       setLoading(true);
       try {
         await API.deleteOrder(orderToCancel);
@@ -325,15 +312,6 @@ function OldOrderLayout (props){
                   <td>{o.total_price}€</td>
                   <td>
                     <span title={hoverText}>
-                      {/* <button
-                        className="btn btn-sm btn-danger"
-                        onClick={() => handleCancelClick(o.orderId)}
-                        disabled={!loggedInTotp}
-                        title={hoverText}
-                        >
-                        <i className='bi bi-trash'></i>
-                      </button> */}
-
                       <button
                         className="btn btn-sm btn-danger"
                         onClick={() => handleCancelClick(o.orderId)}
@@ -354,18 +332,13 @@ function OldOrderLayout (props){
           </tbody>
         </table>
       )}
-<ConfirmDialog
-  show={showConfirm}
-  type="delete"
-
-      // onConfirm={confirmOrder}
-      //   onCancel={() => {setShowConfirm(false); setLoading(false);}}
-
-  onConfirm={confirmCancel}
-  onCancel={() => { setShowConfirm(false); setLoading(false); }} 
-  
-/>
-
+      <ConfirmDialog
+        show={showConfirm}
+        type="delete"
+        onConfirm={confirmCancel}
+        onCancel={() => { setShowConfirm(false); setLoading(false); }} 
+        
+      />
       </div>
   );
 }
@@ -392,11 +365,12 @@ function GenericLayout(props) {
   const [selectedStorage, setSelectedStorage] = useState(1); 
   const [selectedData, setSelectedData] = useState(""); 
 
+  
   const simulateLoading = () => {
     setTimeout(() => {setLoading(false);}, SHOW_MESSAGE_TIME);
   };
-
-  // Auto-clear alerts
+  
+  // Errors and success show for 2 seconds
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => setSuccess(null), SHOW_MESSAGE_TIME);
@@ -439,7 +413,6 @@ function GenericLayout(props) {
     }
   };
 
-
   // get all the orders
   const fetchOrders = async () => {
     try {
@@ -477,9 +450,6 @@ function GenericLayout(props) {
     if (computationData?.[0]?.maxInstances && cloudStatus?.usedComputation !== undefined) {
       setAvailableRam(cloudStatus.usedComputation < computationData[0].maxInstances);
     }
-    // else {
-    //   setAvailableRam(true);
-    // }
   }, [cloudStatus?.usedComputation, computationData]);
 
   // Storage availability (used + selected <= max + RAM min requirements)
@@ -543,7 +513,6 @@ function GenericLayout(props) {
             setAvailableRam={setAvailableRam}
             availableStorage={availableStorage}
             setAvailableStorage={setAvailableStorage}
-
             success={success}
             setSuccess={setSuccess}
             error={error}
@@ -551,7 +520,6 @@ function GenericLayout(props) {
             loading={loading}
             setLoading={setLoading}
             simulateLoading={simulateLoading}
-
             onOrderChange={() => {
               fetchCloudData();
               fetchOrders();
@@ -562,7 +530,6 @@ function GenericLayout(props) {
             loggedIn={props.loggedIn}
             loggedInTotp={props.loggedInTotp}
             orders={orders}
-
             success={success}
             setSuccess={setSuccess}
             error={error}
@@ -570,7 +537,6 @@ function GenericLayout(props) {
             loading={loading}
             setLoading={setLoading}
             simulateLoading={simulateLoading}
-
             onOrderChange={() => {
               fetchCloudData();
               fetchOrders();
