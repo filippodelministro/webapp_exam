@@ -1,48 +1,14 @@
-/* Service card container */
-.serviceCard {
-  width: 320px;             
-  padding: 24px;
-  border-radius: 14px;
-  background-color: #ffffff;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+.servicesGrid {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
 }
 
-/* .serviceCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
-} */
-
-/* Title */
-.serviceCardTitle {
-  margin: 0 0 4px 0;
-  font-size: 14px;
-}
-
-/* Optional: small spacing for paragraphs */
-.serviceCard p {
-  margin: 2px 0;
-}
-
-/* Progress bar container */
-.progress-bar {
-  background-color: #eee;
-  border-radius: 8px;
-  height: 20px;
-  width: 100%;
-  overflow: hidden;
-}
-
-/* Progress bar filler */
-.progress-bar-fill {
-  background-color: #36A2EB;
-  height: 100%;
-  width: 0%; /* this will be overridden inline via style for dynamic width */
-  border-radius: 8px;
-  transition: width 0.5s ease-in-out;
-}
-
-/* Status cards */
 .statusCard {
   flex: 1;
   padding: 16px;
@@ -52,33 +18,36 @@
   text-align: center;
 }
 
-.servicesGrid {
-  display: flex;
-  justify-content: center;
-  gap: 32px;
-  flex-wrap: wrap;
-  max-width: 1200px;
-  margin: 0 auto; /* centers the grid */
-  padding: 40px 20px;
+.serviceCard {
+  width: 320px;
+  padding: 24px;
+  border-radius: 14px;
+  background-color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+.serviceCard p {
+  margin: 2px 0;
+}
+
+.serviceCardTitle {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+}
 
 /* ---------- ORDER TABLE LAYOUT ---------- */
-
-/* Container styling */
 .orders-container {
   margin: 20px 0;
   font-family: Arial, sans-serif;
 }
 
-/* Title styling */
 .orders-title {
   font-size: 1.8rem;
   margin-bottom: 15px;
   color: #333;
 }
 
-/* Table styling */
 .orders-table {
   width: 100%;
   border-collapse: collapse;
@@ -93,7 +62,7 @@
 }
 
 .orders-table th {
-  background-color: #007bff; /* Bootstrap primary color */
+  background-color: #007bff;
   color: white;
   font-weight: 600;
 }
@@ -106,43 +75,41 @@
   background-color: #e6f0ff;
 }
 
-/* No orders text */
 .no-orders {
   font-style: italic;
   color: #555;
 }
 
-/* Error text */
 .error-text {
   color: red;
   font-weight: 500;
 }
 
 /* ---------- CARD TABLE LAYOUT ---------- */
-
 .service-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 6px;
-  font-size: 0.8rem;      
+  font-size: 0.8rem;
 }
 
 .service-table th,
 .service-table td {
-  padding: 2px 6px;       
+  padding: 2px 6px;
   text-align: center;
-  line-height: 1.2;      
+  line-height: 1.2;
 }
 
 .service-table th {
   font-weight: 600;
-  white-space: nowrap;  
+  white-space: nowrap;
 }
 
 .service-table td {
   white-space: nowrap;
 }
 
+/* ---------------- PROGRESS BAR ----------------  */
 
 .progress-bar {
   position: relative;
@@ -159,30 +126,43 @@
   transition: all 0.3s ease;
 }
 
+.tier-section {
+  margin-top: 20px;
+}
+
+.tier-usage {
+  margin-left: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
 .progress-bar-fill--red {
   left: 0;
-  background: #dc3545; /* Solid red */
+  background: #dc3545;
   border-radius: 10px 0 0 10px;
 }
 
 .progress-bar-fill--blue {
   left: 0;
-  background: #007bff; /* Solid blue */
+  background: #007bff;
   border-radius: 10px 0 0 10px;
 }
 
 .progress-bar-fill--yellow {
-  background: #ffc107; /* Solid yellow */
+  background: #ffc107;
   border-radius: 0 10px 10px 0;
   border-left: 1px solid rgba(0,0,0,0.1);
 }
 
+.progress-bar-fill--darkblue { 
+  background: #1e3a8a; 
+}
+
+.progress-bar-fill--green { 
+  background: #10b981; 
+}
 
 
-.progress-bar-fill--darkblue { background: #1e3a8a; }  /* Dark blue */
-.progress-bar-fill--green { background: #10b981; }     /* Green */
-.progress-bar-fill--pink { background: #ec4899; }      /* Pink */
-
-/* .color-swatch.darkblue { background: #1e3a8a; }
-.color-swatch.green { background: #10b981; }
-.color-swatch.pink { background: #ec4899; } */

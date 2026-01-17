@@ -81,7 +81,7 @@ function NewOrderLayout(props) {
   useEffect(() => {
     if (computationData) setSelectedRam(ramTier1);
     if (storageData) setSelectedStorage(storageData[0].minStorage?? 1);
-    if (datatransferData) setSelectedData(datatransferData[0].base_tier ?? 10);
+    if (datatransferData) setSelectedData(1);
   }, [computationData, storageData, datatransferData]);
 
   // Update minStorage based on selected RAM
@@ -132,7 +132,7 @@ function NewOrderLayout(props) {
         // Reset form
         setSelectedRam('');
         setSelectedStorage(minStorage);
-        setSelectedData(10);
+        setSelectedData(1);
         setTotalPrice(0);
         if (onOrderChange) onOrderChange();
       } else {
