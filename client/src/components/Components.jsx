@@ -244,7 +244,7 @@ function DataTransferCard(props) {
 
 // --------Confirmation dialog for creating or deleting an order; messages are dynamic based on type
 function ConfirmDialog(props) {
-  const { show, type, orderDetails, setLoading, onConfirm, onCancel } = props;
+  const { show, type, orderDetails, onConfirm, onCancel } = props;
 
   const isCreate = (type === "create");
   const title = isCreate ? "Create new order" : "Delete order";

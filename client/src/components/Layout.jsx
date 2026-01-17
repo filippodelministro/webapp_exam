@@ -59,11 +59,11 @@ function CloudStatusLayout(props) {
 }
 
 function NewOrderLayout(props) {
-  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData, availableRam, availableStorage, success, setSuccess, error, setError, cloudStatus } = props;
+  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData, availableRam, availableStorage, success, setSuccess, error, setError, loading, setLoading, simulateLoading, cloudStatus } = props;
   
   // const [error, setError] = useState(null);
   // const [success, setSuccess] = useState(null);
-  const [loading, setLoading] = useState(false);
+  // const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [minStorage, setMinStorage] = useState(1);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -73,9 +73,9 @@ function NewOrderLayout(props) {
   const ramTier2 = cd?.ramTier2 || 32;
   const ramTier3 = cd?.ramTier3 || 128;
 
-  const simulateLoading = () => {
-    setTimeout(() => {setLoading(false);}, SHOW_MESSAGE_TIME);
-  };
+  // const simulateLoading = () => {
+  //   setTimeout(() => {setLoading(false);}, SHOW_MESSAGE_TIME);
+  // };
 
   // Set default values when data arrives
   useEffect(() => {
@@ -231,7 +231,7 @@ function NewOrderLayout(props) {
           variant="primary"  
         >
           {loading 
-            ? <><Spinner size="sm" className="me-2" />Creating Order...</>
+            ? <><Spinner size="sm" className="me-2" /></>
             : !availableRam ? 'No RAM available': 
               !availableStorage ? 'Storage limit reached'
                 : (parseInt(selectedStorage) < minStorage)
@@ -259,24 +259,26 @@ function NewOrderLayout(props) {
 }
 
 function OldOrderLayout (props){
-  const { loggedInTotp, orders, onOrderChange, success, setSuccess, error, setError, } = props;
+  const { loggedInTotp, orders, onOrderChange, success, setSuccess, error, setError, loading, setLoading, simulateLoading} = props;
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
-  const [cancelLoading, setCancelLoading] = useState(false);
+  // const [cancelLoading, setCancelLoading] = useState(false);
 
   // show the confirm box
   const handleCancelClick = (orderId) => {
     if(loggedInTotp){
       setOrderToCancel(orderId);
       setShowConfirm(true);
+      setLoading(true);
     }
   };
 
   // actually perform the deletion of the order if properly logged in
   const confirmCancel = async () => {
     if(loggedInTotp){
-      setCancelLoading(true);
+      // setCancelLoading(true);
+      setLoading(true);
       try {
         await API.deleteOrder(orderToCancel);
         setSuccess("Deleted order successfully")
@@ -285,7 +287,8 @@ function OldOrderLayout (props){
       } catch (err) {
         setError("Failed to cancel order.");
       } finally {
-        setCancelLoading(false);
+        setShowConfirm(false);
+        simulateLoading();
         setOrderToCancel(null);
       }
     }
@@ -322,13 +325,26 @@ function OldOrderLayout (props){
                   <td>{o.total_price}€</td>
                   <td>
                     <span title={hoverText}>
-                      <button
+                      {/* <button
                         className="btn btn-sm btn-danger"
                         onClick={() => handleCancelClick(o.orderId)}
                         disabled={!loggedInTotp}
                         title={hoverText}
                         >
                         <i className='bi bi-trash'></i>
+                      </button> */}
+
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleCancelClick(o.orderId)}
+                        disabled={!loggedInTotp || loading}  
+                        title={hoverText}
+                      >
+                        {loading ? (
+                          <Spinner size="sm" className="me-1" />  
+                        ) : (
+                          <i className='bi bi-trash'></i>
+                        )}
                       </button>
                     </span>
                   </td>
@@ -338,13 +354,18 @@ function OldOrderLayout (props){
           </tbody>
         </table>
       )}
-      <ConfirmDialog
-        show={showConfirm}
-        type="delete"
-        loading={cancelLoading}
-        onConfirm={confirmCancel}
-        onCancel={() => setShowConfirm(false)}
-      />
+<ConfirmDialog
+  show={showConfirm}
+  type="delete"
+
+      // onConfirm={confirmOrder}
+      //   onCancel={() => {setShowConfirm(false); setLoading(false);}}
+
+  onConfirm={confirmCancel}
+  onCancel={() => { setShowConfirm(false); setLoading(false); }} 
+  
+/>
+
       </div>
   );
 }
@@ -358,6 +379,7 @@ function GenericLayout(props) {
 
   const [success, setSuccess] = useState(null);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(null);
   
   const [availableRam, setAvailableRam] = useState(true);
   const [availableStorage, setAvailableStorage] = useState(true);
@@ -370,6 +392,9 @@ function GenericLayout(props) {
   const [selectedStorage, setSelectedStorage] = useState(1); 
   const [selectedData, setSelectedData] = useState(""); 
 
+  const simulateLoading = () => {
+    setTimeout(() => {setLoading(false);}, SHOW_MESSAGE_TIME);
+  };
 
   // Auto-clear alerts
   useEffect(() => {
@@ -523,6 +548,9 @@ function GenericLayout(props) {
             setSuccess={setSuccess}
             error={error}
             setError={setError}
+            loading={loading}
+            setLoading={setLoading}
+            simulateLoading={simulateLoading}
 
             onOrderChange={() => {
               fetchCloudData();
@@ -539,6 +567,9 @@ function GenericLayout(props) {
             setSuccess={setSuccess}
             error={error}
             setError={setError}
+            loading={loading}
+            setLoading={setLoading}
+            simulateLoading={simulateLoading}
 
             onOrderChange={() => {
               fetchCloudData();
