@@ -268,7 +268,7 @@ function ConfirmDialog(props) {
         {message}
         {/* Show order details if creating an order, otherwise show delete confirmation */}
         {isCreate && orderDetails && (
-          <div className="order-details mt-3">
+          <div className="order-details">
             <p><strong>RAM:</strong> {orderDetails.ramGb} GB</p>
             <p><strong>Storage:</strong> {orderDetails.storageTb} TB</p>
             <p><strong>Data Transfer:</strong> {orderDetails.dataGb} GB</p>

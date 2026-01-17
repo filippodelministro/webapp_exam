@@ -54,6 +54,7 @@ function CloudStatusLayout(props) {
       <ComputationCard loggedIn={loggedIn} computationData={computationData} cloudStatus={cloudStatus} availableRam={availableRam}/>
       <StorageCard loggedIn={loggedIn} storageData={storageData} cloudStatus={cloudStatus} selectedStorage={selectedStorage} availableStorage={availableStorage}/>
       <DataTransferCard loggedIn={loggedIn} datatransferData={datatransferData} cloudStatus={cloudStatus} selectedData={selectedData}/>
+
     </div>
   );
 }
@@ -450,13 +451,13 @@ function GenericLayout(props) {
 
   return (
     <>
-      <Row>
+      <Row> 
         <Col>
           <Navigation loggedIn={props.loggedIn} user={props.user} loggedInTotp={props.loggedInTotp} logout={props.logout} />
         </Col>
       </Row>
 
-      <Row className="g-4 mt-2">
+      <Row>
         <Col>
           <CloudStatusLayout
             loggedIn={props.loggedIn}
@@ -473,7 +474,7 @@ function GenericLayout(props) {
       </Row>
 
       {props.loggedIn && (
-        <Row className="g-4 mt-2">
+        <Row>
           <Col>
             {error && <Alert variant="danger">{error}</Alert>}  
             {success && <Alert variant="success">{success}</Alert>}  
