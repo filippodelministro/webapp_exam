@@ -1,7 +1,4 @@
 
-/* .cloudStatus-container{
-  background-color: #10b981;
-} */
 
 .message-container {
   position: fixed;
@@ -14,47 +11,56 @@
   flex-wrap: wrap;
   max-width: 90vw;
   margin: 0;
-  pointer-events: none; /* Allows clicks to pass through */
 }
 
 .message-container .alert {
-  pointer-events: auto; /* Re-enable clicks on alerts only */
   max-width: 500px;
   width: 100%;
   margin: 0 auto;
 }
 
-
-.newOrder-container{
-  /* background-color: yellow; */
+.cloudStatus-container{
+  /* background-color: #10b981; */
+    /* background-color: yellow; */
   display: flex;
   justify-content: left;
   gap: 10px;
   flex-wrap: wrap;
   max-width: 1300px;
   /* margin: 0 auto; */
-  padding: 40px 20px;
 }
 
-.oldOrder-container{
-  /* background-color: yellow; */
+.newOrder-container{
   display: flex;
-  justify-content: left;
+  flex-direction: column;
+  width: auto;
+  padding: 24px;
+  background-color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 14px;
   gap: 10px;
-  flex-wrap: wrap;
-  max-width: 1300px;
-  /* margin: 0 auto; */
-  padding: 40px 20px;
+}
+
+.oldOrder-container {
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  padding: 24px;
+  background-color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 14px;
+  gap: 10px;
 }
 
 .servicesGrid {
   display: flex;
-  justify-content: center;
+  justify-content: left;
   gap: 32px;
   flex-wrap: wrap;
-  max-width: 1200px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 40px ;
 }
 
 .statusCard {

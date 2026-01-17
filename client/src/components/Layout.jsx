@@ -50,7 +50,7 @@ function CloudStatusLayout(props) {
   }
 
   return (
-    <div className='-container'>
+    <div>
       <div className="servicesGrid">
       <ComputationCard loggedIn={loggedIn} computationData={computationData} cloudStatus={cloudStatus} availableRam={availableRam}/>
       <StorageCard loggedIn={loggedIn} storageData={storageData} cloudStatus={cloudStatus} selectedStorage={selectedStorage} availableStorage={availableStorage}/>
@@ -277,7 +277,7 @@ function OldOrderLayout (props){
 
   return (
     <div className="oldOrder-container">
-      <h2 className="orders-title">Old Orders</h2>
+      <h4>Old Orders</h4>
 
       {orders.length === 0 ? (
         <p className="orders-empty">No previous orders</p>
@@ -478,7 +478,7 @@ function GenericLayout(props) {
           {error && <Alert variant="danger">{error}</Alert>}  
           {success && <Alert variant="success">{success}</Alert>}  
       </Row>
-      
+
       {props.loggedIn && (
         <Row>
           <Col md={6}>
