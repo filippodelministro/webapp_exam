@@ -473,51 +473,55 @@ function GenericLayout(props) {
         </Col>
       </Row>
 
+      <Row>
+
+      {error && <Alert variant="danger">{error}</Alert>}  
+      {success && <Alert variant="success">{success}</Alert>}  
+      </Row>
       {props.loggedIn && (
         <Row>
-          <Col>
-            {error && <Alert variant="danger">{error}</Alert>}  
-            {success && <Alert variant="success">{success}</Alert>}  
+          <Col md={6}>
 
-          <NewOrderLayout
-            computationData={computationData}
-            storageData={storageData}
-            datatransferData={datatransferData}
-            selectedRam={selectedRam}
-            setSelectedRam={setSelectedRam}
-            selectedStorage={selectedStorage}
-            setSelectedStorage={setSelectedStorage}
-            selectedData={selectedData}
-            setSelectedData={setSelectedData}
-            availableRam={availableRam}
-            availableStorage={availableStorage}
-            success={success}
-            setSuccess={setSuccess}
-            error={error}
-            setError={setError}
-            loading={loading}
-            setLoading={setLoading}
-            simulateLoading={simulateLoading}
-            onOrderChange={() => {
-              fetchCloudData();
-              fetchOrders();
+            <NewOrderLayout
+              computationData={computationData}
+              storageData={storageData}
+              datatransferData={datatransferData}
+              selectedRam={selectedRam}
+              setSelectedRam={setSelectedRam}
+              selectedStorage={selectedStorage}
+              setSelectedStorage={setSelectedStorage}
+              selectedData={selectedData}
+              setSelectedData={setSelectedData}
+              availableRam={availableRam}
+              availableStorage={availableStorage}
+              success={success}
+              setSuccess={setSuccess}
+              error={error}
+              setError={setError}
+              loading={loading}
+              setLoading={setLoading}
+              simulateLoading={simulateLoading}
+              onOrderChange={() => {
+                fetchCloudData();
+                fetchOrders();
+              }}
+            />
+          </Col>
+          <Col md={6}>
+            <OldOrderLayout
+              loggedIn={props.loggedIn}
+              loggedInTotp={props.loggedInTotp}
+              orders={orders}
+              setSuccess={setSuccess}
+              setError={setError}
+              loading={loading}
+              setLoading={setLoading}
+              simulateLoading={simulateLoading}
+              onOrderChange={() => {
+                fetchCloudData();
+                fetchOrders();
             }}
-          />
-
-          <OldOrderLayout
-            loggedIn={props.loggedIn}
-            loggedInTotp={props.loggedInTotp}
-            orders={orders}
-            setSuccess={setSuccess}
-            setError={setError}
-            loading={loading}
-            setLoading={setLoading}
-            simulateLoading={simulateLoading}
-            onOrderChange={() => {
-              fetchCloudData();
-              fetchOrders();
-           }}
-          />
+            />
           </Col>
         </Row>
       )}

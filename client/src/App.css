@@ -1,4 +1,3 @@
-
 .servicesGrid {
   display: flex;
   justify-content: center;
@@ -25,7 +24,6 @@
   background-color: #ffffff;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-
   display: flex;
   flex-direction: column;
 }
@@ -39,48 +37,59 @@
   font-size: 14px;
 }
 
-/* ---------- ORDER TABLE LAYOUT ---------- */
+/* ---------- COMPACT ORDER TABLE ---------- */
 .orders-container {
   margin: 20px 0;
   font-family: Arial, sans-serif;
 }
 
 .orders-title {
-  font-size: 1.8rem;
-  margin-bottom: 15px;
+  font-size: 1.4rem;
+  margin-bottom: 12px;
   color: #333;
 }
 
 .orders-table {
   width: 100%;
   border-collapse: collapse;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 
 .orders-table th,
 .orders-table td {
-  padding: 12px 15px;
+  padding: 6px 8px;
   text-align: center;
-  border: 1px solid #ddd;
+  border: 1px solid #e0e0e0;
+  line-height: 1.2;
 }
 
 .orders-table th {
   background-color: #007bff;
   color: white;
   font-weight: 600;
+  white-space: nowrap;
+  padding: 8px 6px;
+}
+
+.orders-table td {
+  white-space: nowrap;
+  padding: 4px 6px;
 }
 
 .orders-table tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: #f8f9fa;
 }
 
 .orders-table tbody tr:hover {
-  background-color: #e6f0ff;
+  background-color: #e3f2fd;
 }
 
-.no-orders {
+.orders-empty {
   font-style: italic;
-  color: #555;
+  color: #666;
+  font-size: 1rem;
+  padding: 20px;
+  text-align: center;
 }
 
 .error-text {
@@ -112,8 +121,7 @@
   white-space: nowrap;
 }
 
-/* ---------------- PROGRESS BAR ----------------  */
-
+/* ---------------- PROGRESS BAR ---------------- */
 .progress-bar {
   position: relative;
   height: 20px;
@@ -170,7 +178,6 @@
 
 .static-info-section {
   border-top: 1px solid #eee;
-  /* margin-top: 10px; */
   padding-top: 16px;
   margin-top: auto;
 }
