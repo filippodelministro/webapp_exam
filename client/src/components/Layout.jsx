@@ -59,10 +59,10 @@ function CloudStatusLayout(props) {
 }
 
 function NewOrderLayout(props) {
-  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData, availableRam, availableStorage, cloudStatus } = props;
+  const { computationData, storageData, datatransferData, onOrderChange, selectedRam, setSelectedRam, selectedStorage, setSelectedStorage, selectedData, setSelectedData, availableRam, availableStorage, success, setSuccess, error, setError, cloudStatus } = props;
   
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  // const [error, setError] = useState(null);
+  // const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
   const [totalPrice, setTotalPrice] = useState(0);
   const [minStorage, setMinStorage] = useState(1);
@@ -152,8 +152,8 @@ function NewOrderLayout(props) {
   // Handle form submission: validate inputs and show confirmation dialog
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(null);
+    // setError(null);
+    // setSuccess(null);
 
     if (!selectedRam || !selectedStorage || !selectedData) {
       setError('Please fill in all fields');
@@ -177,8 +177,8 @@ function NewOrderLayout(props) {
   return (
     <div className="new-order-form">
       <h4>Create New Order</h4>
-      {error && <Alert variant="danger">{error}</Alert>}
-      {success && <Alert variant="success">{success}</Alert>}
+      {/* {error && <Alert variant="danger">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>} */}
 
       <Form onSubmit={handleSubmit}>
         <Row className="mb-3">
@@ -259,7 +259,7 @@ function NewOrderLayout(props) {
 }
 
 function OldOrderLayout (props){
-  const { loggedInTotp, orders, onOrderChange } = props;
+  const { loggedInTotp, orders, onOrderChange, success, setSuccess, error, setError, } = props;
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState(null);
@@ -279,10 +279,11 @@ function OldOrderLayout (props){
       setCancelLoading(true);
       try {
         await API.deleteOrder(orderToCancel);
+        setSuccess("Deleted order successfully")
         if (onOrderChange) onOrderChange(); 
         setShowConfirm(false);
       } catch (err) {
-        alert("Failed to cancel order.");
+        setError("Failed to cancel order.");
       } finally {
         setCancelLoading(false);
         setOrderToCancel(null);
@@ -354,6 +355,8 @@ function GenericLayout(props) {
   const [datatransferData, setDatatransferData] = useState([]);
   const [cloudStatus, setCloudStatus] = useState(null);
   const [genericLoading, setGenericLoading] = useState(true);
+
+  const [success, setSuccess] = useState(null);
   const [error, setError] = useState(null);
   
   const [availableRam, setAvailableRam] = useState(true);
@@ -366,6 +369,20 @@ function GenericLayout(props) {
   const [selectedRam, setSelectedRam] = useState(""); 
   const [selectedStorage, setSelectedStorage] = useState(1); 
   const [selectedData, setSelectedData] = useState(""); 
+
+
+  // Auto-clear alerts
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(null), SHOW_MESSAGE_TIME);
+      return () => clearTimeout(timer);
+    }
+
+    if (error) {
+      const timer = setTimeout(() => setError(null), SHOW_MESSAGE_TIME);
+      return () => clearTimeout(timer);
+    }
+  }, [success, error]);
 
   // get all the cloud data: not only CloudStatus, but also services configurations/options (prices, minStorage, ecc.)
   const fetchCloudData = async () => {
@@ -454,7 +471,6 @@ function GenericLayout(props) {
 
 
   if (genericLoading) return <p>Loading cloud services info...</p>;
-  if (error) return <p>{error}</p>;
 
   return (
     <>
@@ -484,6 +500,9 @@ function GenericLayout(props) {
       {props.loggedIn && (
         <Row className="g-4 mt-2">
           <Col>
+            {error && <Alert variant="danger">{error}</Alert>}  
+            {success && <Alert variant="success">{success}</Alert>}  
+
           <NewOrderLayout
             computationData={computationData}
             storageData={storageData}
@@ -499,6 +518,12 @@ function GenericLayout(props) {
             setAvailableRam={setAvailableRam}
             availableStorage={availableStorage}
             setAvailableStorage={setAvailableStorage}
+
+            success={success}
+            setSuccess={setSuccess}
+            error={error}
+            setError={setError}
+
             onOrderChange={() => {
               fetchCloudData();
               fetchOrders();
@@ -509,6 +534,12 @@ function GenericLayout(props) {
             loggedIn={props.loggedIn}
             loggedInTotp={props.loggedInTotp}
             orders={orders}
+
+            success={success}
+            setSuccess={setSuccess}
+            error={error}
+            setError={setError}
+
             onOrderChange={() => {
               fetchCloudData();
               fetchOrders();
