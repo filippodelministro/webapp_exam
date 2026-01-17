@@ -1,3 +1,52 @@
+
+/* .cloudStatus-container{
+  background-color: #10b981;
+} */
+
+.message-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 90vw;
+  margin: 0;
+  pointer-events: none; /* Allows clicks to pass through */
+}
+
+.message-container .alert {
+  pointer-events: auto; /* Re-enable clicks on alerts only */
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+
+.newOrder-container{
+  /* background-color: yellow; */
+  display: flex;
+  justify-content: left;
+  gap: 10px;
+  flex-wrap: wrap;
+  max-width: 1300px;
+  /* margin: 0 auto; */
+  padding: 40px 20px;
+}
+
+.oldOrder-container{
+  /* background-color: yellow; */
+  display: flex;
+  justify-content: left;
+  gap: 10px;
+  flex-wrap: wrap;
+  max-width: 1300px;
+  /* margin: 0 auto; */
+  padding: 40px 20px;
+}
+
 .servicesGrid {
   display: flex;
   justify-content: center;

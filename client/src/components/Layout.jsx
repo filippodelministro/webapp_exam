@@ -50,11 +50,12 @@ function CloudStatusLayout(props) {
   }
 
   return (
-    <div className="servicesGrid">
+    <div className='-container'>
+      <div className="servicesGrid">
       <ComputationCard loggedIn={loggedIn} computationData={computationData} cloudStatus={cloudStatus} availableRam={availableRam}/>
       <StorageCard loggedIn={loggedIn} storageData={storageData} cloudStatus={cloudStatus} selectedStorage={selectedStorage} availableStorage={availableStorage}/>
       <DataTransferCard loggedIn={loggedIn} datatransferData={datatransferData} cloudStatus={cloudStatus} selectedData={selectedData}/>
-
+      </div>
     </div>
   );
 }
@@ -159,7 +160,7 @@ function NewOrderLayout(props) {
   };
 
   return (
-    <div className="new-order-form">
+    <div className="newOrder-container">
       <h4>Create New Order</h4>
 
       <Form onSubmit={handleSubmit}>
@@ -275,7 +276,7 @@ function OldOrderLayout (props){
   };
 
   return (
-    <div className="orders-container">
+    <div className="oldOrder-container">
       <h2 className="orders-title">Old Orders</h2>
 
       {orders.length === 0 ? (
@@ -473,15 +474,14 @@ function GenericLayout(props) {
         </Col>
       </Row>
 
-      <Row>
-
-      {error && <Alert variant="danger">{error}</Alert>}  
-      {success && <Alert variant="success">{success}</Alert>}  
+      <Row className='message-container'>
+          {error && <Alert variant="danger">{error}</Alert>}  
+          {success && <Alert variant="success">{success}</Alert>}  
       </Row>
+      
       {props.loggedIn && (
         <Row>
           <Col md={6}>
-
             <NewOrderLayout
               computationData={computationData}
               storageData={storageData}
