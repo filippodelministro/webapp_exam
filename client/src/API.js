@@ -2,7 +2,6 @@ import dayjs from 'dayjs';
 
 const SERVER_URL = 'http://localhost:3001/api/';
 
-
 /**
  * A utility function for parsing the HTTP response.
  */
@@ -12,12 +11,10 @@ function getJson(httpResponsePromise) {
     httpResponsePromise
       .then((response) => {
         if (response.ok) {
-
          // the server always returns a JSON, even empty {}. Never null or non json, otherwise the method will fail
          response.json()
             .then( json => resolve(json) )
             .catch( err => reject({ error: "Cannot parse server response" }))
-
         } else {
           // analyzing the cause of error
           response.json()
@@ -33,8 +30,11 @@ function getJson(httpResponsePromise) {
   });
 }
 
-
 /*** Cloud API calls ***/
+
+/**
+ * Retrieves all the computation information (config info, prices, options, ecc.) from the server.
+ */
 const getComputationInfo = async () => {
   const data = await getJson(
     fetch(SERVER_URL + 'computation-info', { credentials: 'include' })
@@ -42,6 +42,9 @@ const getComputationInfo = async () => {
   return data;
 };
 
+/**
+ * Retrieves storage (config info, prices, options, ecc.) information from the server.
+ */
 const getStorageInfo = async () => {
   const data = await getJson(
     fetch(SERVER_URL + 'storage-info', { credentials: 'include' })
@@ -49,6 +52,9 @@ const getStorageInfo = async () => {
   return data;
 };
 
+/**
+ * Retrieves datatransfer (config info, prices, options, ecc.) information from the server.
+ */
 const getDatatransferInfo = async () => {
   const data = await getJson(
     fetch(SERVER_URL + 'datatransfer-info', { credentials: 'include' })
@@ -56,6 +62,9 @@ const getDatatransferInfo = async () => {
   return data;
 };
 
+/**
+ * Retrieves cloud status (used resources depending on the orders)
+ */
 const getCloudStatus = async () => {
   const data = await getJson(
     fetch(SERVER_URL + 'cloud-info', { credentials: 'include' })
@@ -63,27 +72,18 @@ const getCloudStatus = async () => {
   return data;
 };
 
-
+/**
+ * Retrieves the list of orders from the server.
+ */
 const getOrders = async () => {
   return getJson(
     fetch(SERVER_URL + 'orders', { credentials: 'include' })
   );
 };
 
-// const deleteOrder = async (orderId) => {
-//   const response = await fetch(
-//     SERVER_URL + `orders/${orderId}`,
-//     {
-//       method: "DELETE",
-//       credentials: "include",
-//     }
-//   );
-
-//   if (!response.ok) {
-//     throw new Error("Delete failed");
-//   }
-// };
-
+/**
+ * Deletes a specific order from DB by passing orderId.
+ */
 function deleteOrder(orderId) {
   return fetch(SERVER_URL + `orders/${orderId}`, {
     method: "DELETE",
@@ -97,9 +97,8 @@ function deleteOrder(orderId) {
     });
 }
 
-
 /**
- * This function creates a new order in the back-end.
+ * Creates a new order in DB.
  */
 function createOrder(order) {
   return getJson(
@@ -117,7 +116,7 @@ function createOrder(order) {
 /*** Authentication functions ***/
 
 /**
- * This function wants the TOTP code
+ * This function wants the TOTP code.
  * It executes the 2FA.
  */
 const totpVerify = async (totpCode) => {
@@ -131,7 +130,6 @@ const totpVerify = async (totpCode) => {
   })
   )
 };
-
 
 /**
  * This function wants username and password inside a "credentials" object.

@@ -3,9 +3,8 @@
 /* Data Access Object (DAO) module for accessing films data */
 
 const db = require('./db');
-const dayjs = require("dayjs");
 
-
+//  Retrieves all the computation information (config info, prices, options, ecc.) from the server.
 const convertComputationInfoFromDbRecord = (dbRecord) => {
   const computationInfo = {};
   computationInfo.id = dbRecord.id;
@@ -41,6 +40,8 @@ exports.getComputationInfo = () => {
     });
 };
 
+
+//  Retrieves all the storage information (config info, prices, options, ecc.) from the server.
 const convertStorageInfoFromDbRecord = (dbRecord) => {
   const storageInfo = {};
   storageInfo.id = dbRecord.id;
@@ -69,6 +70,8 @@ exports.getStorageInfo = () => {
     });
 };
 
+
+//  Retrieves all the datatransfer information (config info, prices, options, ecc.) from the server.
 const convertDatatransferInfoFromDbRecord = (dbRecord) => {
   const DTInfo = {};
   DTInfo.id = dbRecord.id;
@@ -100,6 +103,7 @@ exports.getDatatransferInfo = () => {
 };
 
 
+// Retrieves cloud status (used resources depending on the orders)
 const convertCloudStatusFromDbRecord = (dbRecord) => {
   const cloudStatus = {};
   cloudStatus.usedComputation = dbRecord.usedComputation;
@@ -125,6 +129,7 @@ exports.getCloudStatus = () => {
     });
 };
 
+// Retrieves the list of orders from the server. 
 const convertListOrdersFromDbRecord = (dbRecord) => {
   const listOrders = {};
   listOrders.orderId = dbRecord.order_id;
@@ -156,6 +161,7 @@ exports.getOrders = (userId) => {
 };
 
 
+// Deletes a specific order from DB by passing orderId.
 exports.deleteOrders = (orderId) => {
   return new Promise((resolve, reject) => {
     const sql = `
@@ -173,6 +179,8 @@ exports.deleteOrders = (orderId) => {
   });
 };
 
+
+// Creates a new order in DB.
 exports.createOrder = (order) => {
   return new Promise((resolve, reject) => {
 

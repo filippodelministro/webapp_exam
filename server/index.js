@@ -108,27 +108,31 @@ const errorFormatter = ({ location, msg, param, value, nestedErrors }) => {
 
 /*** Cloud Service APIs ***/
 
+// 1. Retrieve usage statistics for computation services.
 // GET /api/computation-info
-// Returns usage statistics for computation, storage, and data_transfer services.
 app.get('/api/computation-info', (req, res) => {
   cloudDao.getComputationInfo()
     .then((data) => res.json(data))
     .catch((err) => res.status(500).json({ error: 'Error in retrieving computation info' }));
 });
 
+// 2. Retrieve usage statistics for storage services.
+// GET /api/storage-info
 app.get('/api/storage-info', (req, res) => {
   cloudDao.getStorageInfo()
     .then((data) => res.json(data))
     .catch((err) => res.status(500).json({ error: 'Error in retrieving storage info' }));
 });
 
+// 3. Retrieve usage statistics for data transfer services.
+// GET /api/datatransfer-info
 app.get('/api/datatransfer-info', (req, res) => {
   cloudDao.getDatatransferInfo()
     .then((data) => res.json(data))
     .catch((err) => res.status(500).json({ error: 'Error in retrieving datatransfer info' }));
 });
 
-
+// 4. Retrieve overall cloud service status.
 // GET /api/cloud-info
 app.get('/api/cloud-info', (req, res) => {
   cloudDao.getCloudStatus()
@@ -136,6 +140,7 @@ app.get('/api/cloud-info', (req, res) => {
     .catch((err) => res.status(500).json({ error: 'Error in retrieving cloud info' }));
 });
 
+// 5. Retrieve all orders for the authenticated user.
 // GET /api/orders
 app.get('/api/orders', isLoggedIn, (req, res) => {
   cloudDao.getOrders(req.user.id)
@@ -145,6 +150,9 @@ app.get('/api/orders', isLoggedIn, (req, res) => {
     );
 });
 
+// 6. Delete a specific order by orderId.
+// DELETE /api/orders/:orderId
+// Requires authentication and TOTP verification. orderId must be a positive integer.
 app.delete('/api/orders/:orderId', isLoggedIn, isTotp,
   [ check('orderId').isInt({min: 1}) ],
   async (req, res) => {
@@ -158,7 +166,9 @@ app.delete('/api/orders/:orderId', isLoggedIn, isTotp,
   }
 );
 
+// 7. Create a new order for cloud services.
 // POST /api/new-orders
+// Requires authentication. Validates ramGb, storageTb, dataGb (min 1), and totalPrice (min 1).
 app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
   [
     check('ramGb').isInt({ min: 1 }),
