@@ -396,7 +396,7 @@ function GenericLayout(props) {
       if(props.loggedIn || props.loggedInTotp){
         setSelectedRam(computation[0]?.ramTier1 ?? "");
         setSelectedStorage(storage[0]?.minStorageTbPerOrder ?? 1);
-        setSelectedData(datatransfer[0]?.base_tier ?? 1);
+        setSelectedData(1);
       }
       
     } catch (err) {
