@@ -2,7 +2,15 @@
 ## Student: s332087 FILIPPO DEL MINISTRO
 
 ## React Client Application Routes
-
+- Route `/`
+    1. When no one is logged in, it displays the navigation bar and cloud service status through the services cards (ComputationCard, StorageCard, DataTransferCard)
+    2. When a user is logged in, their order history is shown via OldOrderLayout. Users can create new orders via NewOrderLayout, selecting RAM, storage, and data transfer amounts. CloudStatusLayout dinamically shows current resource usage.
+- Route `/login`
+    - Displays LoginLayout for email/password authentication
+    - If user has 2FA enabled, redirects to TotpLayout after initial login
+    - Successful login navigates to `/`
+- Route `*` 
+    - Displays NotFoundLayout (404 page)
 
 ## API server
 
@@ -81,12 +89,12 @@
   - **Response body**:
     [
         {
-            "orderId": 1,
-            "timestamp":  "DD/MM/YYYY"
-            "ramGb": 1
-            "storageTb": 10
-            "dataGb": 10
-            "total_price": 121
+        "orderId":1,
+        "timestamp": "YYYY-MM-DD HH:MM:SS",
+        "ramGb":32,
+        "storageTb":10,
+        "dataGb":10,
+        "total_price":121
         }
         ...
     ]
@@ -102,11 +110,9 @@
       }
     ```
   - **Response body**: if all the reservation are inserted successfully, it returns the number of modified lines in the database.
-    
   - Codes: `200 OK`, `422 Unprocessable Content`, `500 Internal Server Error`
 
 
-<!-- todo -->
 * **POST `/api/new-orders`**: Create a new order for given all the order detail and userId.
   - **Request body**: 
     - ramGb: INT $\ge$ 1
@@ -128,3 +134,42 @@
         }
     ```
   - Codes: `201 Created`, `500 Internal Server Error`
+
+
+## Database Tables
+
+- Table `users` - contains user accounts with:
+     id, email, name, hash, salt, secret
+- Table `computation` - contains computation service details with:
+     service_id, name, max_instances, ram tiers, min storage requirements, price tiers
+- Table `storage` - contains storage service pricing with:
+     service_id, name, price_eur_per_tb_per_month, min/max storage limits
+- Table `datatransfer` - contains data transfer pricing with:
+    service_id, name, base_tier, tier1, base_price, tier multipliers
+- Table `orders` - contains user orders with:
+    order_id, user_id, timestamp, ram_gb, storage_tb, data_gb, total_price
+
+## Main React Components
+
+- `AppWithRouter` (in `App.jsx`): technically a component, takes the role of App and is rendered inside a Router to be able to use the useNavigate hook. This maintains most of the state of the app.
+- `GenericLayout` (in `App.jsx`): it is the component where all the other components are.
+- `CloudStatusLayout` (in `Layout.jsx`): displays current cloud resource usage and status
+    - `ComputationCard` (in `Components.jsx`): shows computation instances and RAM info
+    - `StorageCard` (in `Components.jsx`): displays storage allocation and info
+    - `DataTransferCard` (in `Components.jsx`): shows data transfer volume and info
+- `NewOrderLayout` (in `Layout.jsx`): handles new order creation form
+- `OldOrderLayout` (in `Layout.jsx`): displays user's order history and deleting button (if 2FA authenticated)
+- `ConfirmDialog` (in `Components.jsx`): confirmation pop-up for order and deletion submission
+- `NotFoundLayout` (in `Layout.jsx`): 404 error page
+- `LoginLayout` (in `Layout.jsx`): responsible for handling the login page
+- `TotpLayout` (in `Layout.jsx`): responsible for handling 2FA login page
+- `Navigation` (in `Navigation.jsx`): handles the navigation bar on top of the page
+
+
+
+## Users Credentials
+
+- u1@p.it, pwd
+- u2@p.it, pwd
+- u3@p.it, pwd
+- u4@p.it, pwd
