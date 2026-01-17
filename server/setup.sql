@@ -26,10 +26,10 @@ INSERT INTO "users" VALUES
 (4,'u4@p.it','David','61ed132df8733b14ae5210457df8f95b987a7d4b8cdf3daf2b5541679e7a0622','e818f0647b4e1fe0','LXBSMDTMSP2I5XFXIYRGFVWSFI');
 
 --------------------------------------------------
--- COMPUTATION SERVICE
+-- COMPUTATION SERVICE¯
 --------------------------------------------------
 CREATE TABLE IF NOT EXISTS "computation" (
-    "service_id" INTEGER PRIMARY KEY,
+    "service_id" INTEGER PRIMARY KEY,¯
     "name" TEXT NOT NULL,
     "max_instances" INTEGER NOT NULL,
     "ram_tier1" INTEGER NOT NULL,

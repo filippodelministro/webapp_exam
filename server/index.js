@@ -112,7 +112,7 @@ const errorFormatter = ({ location, msg, param, value, nestedErrors }) => {
 // GET /api/computation-info
 app.get('/api/computation-info', (req, res) => {
   cloudDao.getComputationInfo()
-    .then((data) => res.json(data))
+    .then((data) => res.status(200).json(data))
     .catch((err) => res.status(500).json({ error: 'Error in retrieving computation info' }));
 });
 
@@ -120,7 +120,7 @@ app.get('/api/computation-info', (req, res) => {
 // GET /api/storage-info
 app.get('/api/storage-info', (req, res) => {
   cloudDao.getStorageInfo()
-    .then((data) => res.json(data))
+    .then((data) => res.status(200).json(data))
     .catch((err) => res.status(500).json({ error: 'Error in retrieving storage info' }));
 });
 
@@ -128,7 +128,7 @@ app.get('/api/storage-info', (req, res) => {
 // GET /api/datatransfer-info
 app.get('/api/datatransfer-info', (req, res) => {
   cloudDao.getDatatransferInfo()
-    .then((data) => res.json(data))
+    .then((data) => res.status(200).json(data))
     .catch((err) => res.status(500).json({ error: 'Error in retrieving datatransfer info' }));
 });
 
@@ -136,7 +136,7 @@ app.get('/api/datatransfer-info', (req, res) => {
 // GET /api/cloud-info
 app.get('/api/cloud-info', (req, res) => {
   cloudDao.getCloudStatus()
-    .then((data) => res.json(data))
+    .then((data) => res.status(200).json(data))
     .catch((err) => res.status(500).json({ error: 'Error in retrieving cloud info' }));
 });
 
@@ -144,10 +144,8 @@ app.get('/api/cloud-info', (req, res) => {
 // GET /api/orders
 app.get('/api/orders', isLoggedIn, (req, res) => {
   cloudDao.getOrders(req.user.id)
-    .then((orders) => res.json(orders))
-    .catch(() =>
-      res.status(500).json({ error: 'Error retrieving orders' })
-    );
+    .then((data) => res.status(200).json(data))
+    .catch((err) => res.status(500).json({ error: 'Error retrieving orders' }));
 });
 
 // 6. Delete a specific order by orderId.
@@ -157,16 +155,19 @@ app.delete('/api/orders/:orderId', isLoggedIn, isTotp,
   [ check('orderId').isInt({min: 1}) ],
   async (req, res) => {
     try {
-      await cloudDao.deleteOrders(req.params.orderId);
-      res.status(200).end();
+      const changes = await cloudDao.deleteOrders(req.params.orderId);
+      if (changes === 0) {
+        return res.status(422).json({ error: 'Order not found' });
+      }
+      res.status(200).json({ deleted: changes });
     } catch (err) {
-      console.log(err);  // Logging errors is expecially useful while developing, to catch SQL errors etc.
-      res.status(503).json({ error: 'Database error' });
+      console.log(err); 
+      res.status(503).json({ error: 'Server error' });
     }
   }
 );
 
-// 7. Create a new order for cloud services.
+// 7. Create a new order for given all the order detail and user id
 // POST /api/new-orders
 // Requires authentication. Validates ramGb, storageTb, dataGb (min 1), and totalPrice (min 1).
 app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
@@ -189,8 +190,6 @@ app.post('/api/new-orders', isLoggedIn, // ensure the user is logged in
       dataGb: req.body.dataGb,
       total_price: req.body.totalPrice
     };
-
-    console.log("index:", order);
 
     try {
       console.log(order);
