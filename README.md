@@ -169,7 +169,10 @@
 
 ## Users Credentials
 
-- u1@p.it, pwd
-- u2@p.it, pwd
-- u3@p.it, pwd
-- u4@p.it, pwd
+| email      |   name | plain-text password |
+|------------|--------|---------------------|
+| u1@p.it    | John   | pwd                 |
+| u2@p.it    | Alice  | pwd                 |
+| u3@p.it    | George | pwd                 |
+| u4@p.it    | David  | pwd                 |
+
