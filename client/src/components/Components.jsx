@@ -235,9 +235,9 @@ function DataTransferCard(props) {
 
       <div className="static-info-section">
         <p>{used} GB used</p>
-        <p><strong>Base tier:</strong> (up to {base_tier} GB): €{basePrice}/GB</p>
-        <p><strong>Tier 1:</strong> (up to {tier1} GB): €{tier1Price}/GB</p>
-        <p><strong>Tier 2:</strong> (above {tier1} GB): €{tier2Price}/GB</p>
+        <p><strong>Base tier</strong> (up to {base_tier} GB): €{basePrice}/GB</p>
+        <p><strong>Tier 1</strong> (up to {tier1} GB): €{tier1Price}/GB</p>
+        <p><strong>Tier 2</strong> (above {tier1} GB): €{tier2Price}/GB</p>
         <p><small>All prices are monthly prices</small></p>
       </div>
 
@@ -268,11 +268,11 @@ function ConfirmDialog(props) {
         {message}
         {/* Show order details if creating an order, otherwise show delete confirmation */}
         {isCreate && orderDetails && (
-          <div className="order-details">
-            <p><strong>RAM:</strong> {orderDetails.ramGb} GB</p>
-            <p><strong>Storage:</strong> {orderDetails.storageTb} TB</p>
-            <p><strong>Data Transfer:</strong> {orderDetails.dataGb} GB</p>
-            <p><strong>Total Price:</strong> €{orderDetails.totalPrice?.toFixed(2)}</p>
+          <div>
+            <p className='mb-1'><strong>RAM:</strong> {orderDetails.ramGb} GB</p>
+            <p className='mb-1'><strong>Storage:</strong> {orderDetails.storageTb} TB</p>
+            <p className='mb-1'><strong>Data Transfer:</strong> {orderDetails.dataGb} GB</p>
+            <p className='mb-1'><strong>Total Price:</strong> €{orderDetails.totalPrice?.toFixed(2)}</p>
           </div>
         )}
       </Modal.Body>
