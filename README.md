@@ -3,11 +3,11 @@
 
 ## React Client Application Routes
 - Route `/`
-    1. When no one is logged in, it displays the navigation bar and cloud service status through the services cards (ComputationCard, StorageCard, DataTransferCard)
-    2. When a user is logged in, their order history is shown via OldOrderLayout. Users can create new orders via NewOrderLayout, selecting RAM, storage, and data transfer amounts. CloudStatusLayout dinamically shows current resource usage.
+    1. When no one is logged in, it displays the navigation bar and cloud service status through the services cards (`ComputationCard`, `StorageCard`, `DataTransferCard`)
+    2. When a user is logged in, their order history is shown via `OldOrderLayout`. Users can create new orders via `NewOrderLayout`, selecting RAM, storage, and data transfer amounts. `CloudStatusLayout` dinamically shows current resource usage.
 - Route `/login`
-    - Displays LoginLayout for email/password authentication
-    - If user has 2FA enabled, redirects to TotpLayout after initial login
+    - Displays `LoginLayout` for email/password authentication
+    - If user has 2FA enabled, redirects to TotpLayout after initial login; Users can always decide to login without 2FA 
     - Successful login navigates to `/`
 - Route `*` 
     - Displays NotFoundLayout (404 page)
@@ -16,7 +16,7 @@
 
 * **GET `/api/computation-info`**: Retrieves all the computation info (config info, prices, options, ecc.) from the server.
   - **Response body**:
-    ```
+    ```js
     [
         {
             "id" = 1,
@@ -35,9 +35,9 @@
     ]
     ```
   - Codes: `200 OK`, `500 Internal Server Error`
-  * **GET `/api/storage-info`**: Retrieves all the storage info (config info, prices, options, ecc.) from the server.
+* **GET `/api/storage-info`**: Retrieves all the storage info (config info, prices, options, ecc.) from the server.
     - **Response body**:
-    ```
+    ```js
     [
         {
             "id": 2,
@@ -48,11 +48,11 @@
         },
     ]
     ```
-  - Codes: `200 OK`, `500 Internal Server Error`
+  Codes: `200 OK`, `500 Internal Server Error`
 
-  * **GET `/api/datatransfer-info`**: Retrieves all the data transfer info (config info, prices, options, ecc.) from the server.
+* **GET `/api/datatransfer-info`**: Retrieves all the data transfer info (config info, prices, options, ecc.) from the server.
     - **Response body**:
-    ```
+    ```js
     [
         {
         "id": 3,
@@ -68,25 +68,28 @@
   - Codes: `200 OK`, `500 Internal Server Error`
 
 
-  * **GET `/api/cloud-info`**: Retrieves cloud status (used resources depending on the orders)
+* **GET `/api/cloud-info`**: Retrieves cloud status (used resources depending on the orders)
   - **Response body**:
+  ```js
     {
         "usedComputation": 4,
         "usedStorage": 70,
         "usedData": 260
     }
+  ```
   - Codes: `200 OK`, `500 Internal Server Error`
 
 
-  * **GET `/api/orders`**: Retrieve all orders for the authenticated user.
+* **GET `/api/orders`**: Retrieve all orders for the authenticated user.
   - **Parameters**
     1. userId as an INT $\ge$ 1
-    ```
+    ```js
       {
         "userId": 1
       }
     ```
   - **Response body**:
+  ```js
     [
         {
         "orderId":1,
@@ -98,13 +101,13 @@
         }
         ...
     ]
+  ```
   - Codes: `200 OK`, `500 Internal Server Error`
 
 
 * **DELETE `'/api/orders/:orderId`**: Delete a specific order by orderId.
-    - **Parameters**
-    1. orderId as an INT $\ge$ 1
-    ```
+    - **Parameters**: `orderId` as an INT $\ge$ 1
+    ```js
       {
         "orderId": 1
       }
@@ -119,7 +122,7 @@
     - storageTb: INT $\ge$ 1
     - dataGb: INT $\ge$ 1
     - total_price: FLOAT $\ge$ 1
-    ```
+    ```js
       {
         "ramGb": 16
         "storageTb": 1
@@ -128,7 +131,7 @@
       }
     ```
   - **Response body**: if all the reservation are inserted successfully:
-    ```
+    ```js
         {
             success: true
         }
@@ -159,11 +162,6 @@
     - `DataTransferCard` (in `Components.jsx`): shows data transfer volume and info
 - `NewOrderLayout` (in `Layout.jsx`): handles new order creation form
 - `OldOrderLayout` (in `Layout.jsx`): displays user's order history and deleting button (if 2FA authenticated)
-- `ConfirmDialog` (in `Components.jsx`): confirmation pop-up for order and deletion submission
-- `NotFoundLayout` (in `Layout.jsx`): 404 error page
-- `LoginLayout` (in `Layout.jsx`): responsible for handling the login page
-- `TotpLayout` (in `Layout.jsx`): responsible for handling 2FA login page
-- `Navigation` (in `Navigation.jsx`): handles the navigation bar on top of the page
 
 
 
